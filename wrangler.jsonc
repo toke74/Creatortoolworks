@@ -1,0 +1,27 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "creatortoolworks",
+  "main": ".open-next/worker.js",
+  // Pinned to the newest date the installed wrangler devDependency's bundled workerd
+  // binary supports locally (verified via `pnpm preview` in WSL2). Bumping this further
+  // requires bumping the wrangler devDependency first — see docs/12-DEPLOYMENT-RUNBOOK.md.
+  "compatibility_date": "2026-08-08",
+  "compatibility_flags": ["nodejs_compat"],
+  // Custom Domain (not a Route): the Worker is this domain's origin, so Cloudflare
+  // manages DNS + TLS for it directly. Apex only — canonical hostname is
+  // https://creatortoolworks.com, not www. See docs/12-DEPLOYMENT-RUNBOOK.md for the
+  // www redirect setup, which is a separate zone-level Cloudflare rule, not a Worker route.
+  "routes": [
+    {
+      "pattern": "creatortoolworks.com",
+      "custom_domain": true
+    }
+  ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
