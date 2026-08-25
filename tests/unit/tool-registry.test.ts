@@ -33,15 +33,18 @@ describe("tool registry", () => {
 
   it("only exposes tools with a working implementation to visitors", () => {
     const visitorFacingTools = getVisitorFacingTools();
-    expect(visitorFacingTools.map((tool) => tool.id)).toEqual(["thumbnail-size-checker"]);
+    expect(visitorFacingTools.map((tool) => tool.id)).toEqual([
+      "thumbnail-size-checker",
+      "youtube-timestamp-generator",
+      "youtube-description-formatter",
+    ]);
   });
 
   it("excludes unimplemented tools from related-tool links", () => {
-    const titleAnalyzer = getToolBySlug("youtube-title-analyzer");
-    expect(titleAnalyzer).toBeDefined();
-    // youtube-title-analyzer relates to thumbnail-size-checker (implemented) and
-    // video-description-formatter (not yet implemented); only the former should surface.
-    expect(getRelatedTools(titleAnalyzer!).map((tool) => tool.id)).toEqual(["thumbnail-size-checker"]);
+    const earningsEstimator = getToolBySlug("youtube-earnings-estimator");
+    expect(earningsEstimator).toBeDefined();
+    // youtube-earnings-estimator relates only to youtube-title-analyzer, which isn't implemented yet.
+    expect(getRelatedTools(earningsEstimator!).map((tool) => tool.id)).toEqual([]);
   });
 });
 

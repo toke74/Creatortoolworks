@@ -34,6 +34,12 @@ This register is for changeable platform/policy facts. Prefer primary/official d
 ### Re-verified on 2026-08-20 (Thumbnail Size Checker release-readiness pass)
 - Custom thumbnails (support.google.com/youtube/answer/72431): JPG or PNG; 3840×2160 recommended with a 640px minimum width; 16:9 recommended aspect ratio; 50MB max from desktop/web, 2MB max from the mobile app. Matches the values already centralized in `src/lib/platform-facts/youtube-thumbnail.ts` — no changes required.
 
+### Re-verified on 2026-08-23 (YouTube Timestamp Generator build)
+- Manual video chapters (support.google.com/youtube/answer/9884579): first timestamp must be `00:00`, at least three timestamps, listed in ascending order, minimum chapter length 10 seconds, and manual chapters override automatically generated ones. Matches the 2026-08-19 baseline; now centralized in `src/lib/platform-facts/youtube-chapters.ts`. The Timestamp Generator itself is a general-purpose formatter and does not enforce these chapter-specific rules — it only explains them as context.
+
+### Re-verified on 2026-08-25 (YouTube Description Formatter build)
+- Video description character limit (support.google.com/youtube/answer/57404): "Video descriptions have a character limit of 5,000 characters and cannot include invalid characters." Cross-checked against support.google.com/youtube/answer/12948449, which separately states "The description allows a maximum of 5000 characters." Matches the 2026-08-19 baseline; now centralized in `src/lib/platform-facts/youtube-description.ts`.
+
 ## Framework/hosting
 - Next.js metadata — https://nextjs.org/docs/app/getting-started/metadata-and-og-images
 - Next.js sitemap — https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap
