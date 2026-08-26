@@ -37,6 +37,23 @@ test.describe("YouTube Description Formatter", () => {
     }
   });
 
+  test("treats an empty description as neutral, not a platform validation error", async ({ page }) => {
+    await page.goto("/youtube-tools/youtube-description-formatter");
+
+    await expect(page.getByText(/enter or paste a description/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Copy description" })).toHaveCount(0);
+
+    // Scoped to the tool's own error indicators rather than a page-wide
+    // getByRole("alert") query: Next.js's App Router always renders its own
+    // visually-hidden #__next-route-announcer__ with role="alert" for
+    // accessibility route announcements, unrelated to this component.
+    const characterStatus = page.locator("#description-character-status");
+    await expect(characterStatus).not.toHaveAttribute("role", "alert");
+    await expect(characterStatus).not.toContainText(/remove/i);
+    await expect(page.locator("#copy-blocked-note")).toHaveCount(0);
+    await expect(page.getByLabel("Video description")).not.toHaveAttribute("aria-invalid");
+  });
+
   test("loads the example description and applies safe cleanup", async ({ page }) => {
     await page.goto("/youtube-tools/youtube-description-formatter");
 
@@ -96,21 +113,26 @@ test.describe("YouTube Description Formatter", () => {
     await copyButton.click();
   });
 
-  test("is noindex while in draft status", async ({ page }) => {
+  test("is indexable now that it's live (no noindex, correct canonical)", async ({ page }) => {
     const response = await page.goto("/youtube-tools/youtube-description-formatter");
     expect(response?.status()).toBe(200);
 
     const robotsMeta = page.locator('meta[name="robots"]');
-    await expect(robotsMeta).toHaveAttribute("content", /noindex/);
-    await expect(robotsMeta).toHaveAttribute("content", /follow/);
+    expect(await robotsMeta.count()).toBe(0);
+
+    const canonical = page.locator('link[rel="canonical"]');
+    await expect(canonical).toHaveAttribute(
+      "href",
+      "https://creatortoolworks.com/youtube-tools/youtube-description-formatter",
+    );
   });
 
-  test("is excluded from the sitemap while draft, unlike the two live tools", async ({ request }) => {
+  test("is present in the sitemap alongside the other two live tools", async ({ request }) => {
     const response = await request.get("/sitemap.xml");
     expect(response.status()).toBe(200);
     const body = await response.text();
 
-    expect(body).not.toContain("youtube-description-formatter");
+    expect(body).toContain("youtube-description-formatter");
     expect(body).toContain("thumbnail-size-checker");
     expect(body).toContain("youtube-timestamp-generator");
   });

@@ -134,6 +134,13 @@ describe("buildDescriptionReport", () => {
     expect(report.overLimitBy).toBe(0);
   });
 
+  it("reports ready status for a minimal 1-character description (not empty, not an error)", () => {
+    const report = buildDescriptionReport("a", MAX);
+    expect(report.status).toBe("ready");
+    expect(report.characterCount).toBe(1);
+    expect(report.overLimitBy).toBe(0);
+  });
+
   it("reports ready status at exactly the 5,000-character limit", () => {
     const text = "a".repeat(5000);
     const report = buildDescriptionReport(text, MAX);

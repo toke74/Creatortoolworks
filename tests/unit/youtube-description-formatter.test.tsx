@@ -32,6 +32,30 @@ describe("YoutubeDescriptionFormatter", () => {
     expect(screen.getByText(/0 \/ 5,000 characters/)).toBeInTheDocument();
   });
 
+  it("treats an empty description as a neutral incomplete state, not an error", () => {
+    render(<YoutubeDescriptionFormatter toolId="youtube_description_formatter" />);
+
+    // Neutral guidance is shown instead of a pass/fail banner or a Copy button.
+    expect(screen.getByText(/enter or paste a description/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Copy description" })).not.toBeInTheDocument();
+
+    // Nothing is flagged as invalid: no alert role, no aria-invalid, no error styling.
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(getTextarea()).not.toHaveAttribute("aria-invalid");
+    expect(screen.queryByText(/remove \d+ character/i)).not.toBeInTheDocument();
+  });
+
+  it("treats a short (1-character) description as valid/Ready, not an error", async () => {
+    render(<YoutubeDescriptionFormatter toolId="youtube_description_formatter" />);
+    fireEvent.change(getTextarea(), { target: { value: "a" } });
+
+    await waitFor(() => expect(screen.getAllByText(/ready to copy/i).length).toBeGreaterThan(0));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(getTextarea()).not.toHaveAttribute("aria-invalid");
+    const copyButton = screen.getByRole("button", { name: "Copy description" });
+    expect(copyButton).toBeEnabled();
+  });
+
   it("updates the character count as the user types", async () => {
     render(<YoutubeDescriptionFormatter toolId="youtube_description_formatter" />);
     fireEvent.change(getTextarea(), { target: { value: "Hello world" } });

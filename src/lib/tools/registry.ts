@@ -45,7 +45,7 @@ export const tools: readonly ToolDefinition[] = [
     name: "YouTube Description Formatter",
     slug: "youtube-description-formatter",
     category: "descriptions",
-    status: "draft",
+    status: "live",
     implemented: true,
     visibleInCatalog: true,
     summary: "Clean, check, and format a YouTube video description before publishing.",
