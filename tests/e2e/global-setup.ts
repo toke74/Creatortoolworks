@@ -13,6 +13,8 @@ const ROUTES_TO_WARM = [
   "/youtube-tools/thumbnail-size-checker",
   "/youtube-tools/youtube-timestamp-generator",
   "/youtube-tools/youtube-description-formatter",
+  "/youtube-tools/youtube-chapter-generator",
+  "/youtube-tools/youtube-title-checker",
   "/sitemap.xml",
 ];
 

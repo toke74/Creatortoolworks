@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { ThumbnailSizeChecker } from "@/components/tool/thumbnail-size-checker";
 import { ToolIcon } from "@/components/tool/tool-icon";
+import { YoutubeChapterGenerator } from "@/components/tool/youtube-chapter-generator";
 import { YoutubeDescriptionFormatter } from "@/components/tool/youtube-description-formatter";
+import { YoutubeTitleChecker } from "@/components/tool/youtube-title-checker";
 import { YoutubeTimestampGenerator } from "@/components/tool/youtube-timestamp-generator";
 import { formatFileSize } from "@/lib/tools/thumbnail-checker/analyze";
 import {
@@ -22,6 +24,7 @@ import {
   youtubeChaptersRequireAscendingOrder,
 } from "@/lib/platform-facts/youtube-chapters";
 import { youtubeDescriptionMaxCharacters } from "@/lib/platform-facts/youtube-description";
+import { youtubeTitleMaxCharacters } from "@/lib/platform-facts/youtube-title";
 import { siteConfig } from "@/lib/seo/site";
 import { getRelatedTools, getToolBySlug, tools } from "@/lib/tools/registry";
 
@@ -35,6 +38,8 @@ const WORKSPACE_HEADINGS: Record<string, string> = {
   "thumbnail-size-checker": "Check your thumbnail",
   "youtube-timestamp-generator": "Build your timestamps",
   "youtube-description-formatter": "Format your description",
+  "youtube-chapter-generator": "Build your chapters",
+  "youtube-title-checker": "Check your title",
 };
 
 // The registry's `summary` field also drives the meta description and catalog card,
@@ -45,6 +50,10 @@ const TOOL_INTRO_OVERRIDES: Record<string, string> = {
     "Create clean timestamps for YouTube descriptions and comments. Enter times manually or paste an existing list, then format, sort, and copy everything in seconds.",
   "youtube-description-formatter":
     "Check your description against YouTube's character limit, review word/line/link/hashtag counts, and apply safe, non-destructive cleanup before you copy it in.",
+  "youtube-chapter-generator":
+    "Build a timestamped chapter list and check it against YouTube's published manual-chapter requirements — first timestamp, minimum count, order, and minimum length — before you paste it into a description.",
+  "youtube-title-checker":
+    "Check a YouTube video title against the official 100-character title limit, review informational counts, and copy the exact title when it is ready.",
 };
 
 export function generateStaticParams() {
@@ -108,7 +117,10 @@ export default async function ToolPage({ params }: ToolPageProps) {
 
       <section
         className={`card mt-10 p-6 shadow-[0_16px_40px_-24px_rgba(23,23,27,0.25)] sm:p-8 ${
-          tool.id === "youtube-timestamp-generator" || tool.id === "youtube-description-formatter"
+          tool.id === "youtube-timestamp-generator" ||
+          tool.id === "youtube-description-formatter" ||
+          tool.id === "youtube-chapter-generator" ||
+          tool.id === "youtube-title-checker"
             ? "max-w-5xl"
             : "max-w-4xl"
         }`}
@@ -130,6 +142,16 @@ export default async function ToolPage({ params }: ToolPageProps) {
         {tool.id === "youtube-description-formatter" ? (
           <div className="mt-4">
             <YoutubeDescriptionFormatter toolId={tool.analyticsId} />
+          </div>
+        ) : null}
+        {tool.id === "youtube-chapter-generator" ? (
+          <div className="mt-4">
+            <YoutubeChapterGenerator toolId={tool.analyticsId} />
+          </div>
+        ) : null}
+        {tool.id === "youtube-title-checker" ? (
+          <div className="mt-4">
+            <YoutubeTitleChecker toolId={tool.analyticsId} />
           </div>
         ) : null}
       </section>
@@ -513,6 +535,389 @@ export default async function ToolPage({ params }: ToolPageProps) {
             </a>
             <p className="mt-1 text-xs text-[var(--text-muted)]">
               Verified {youtubeDescriptionMaxCharacters.verifiedAt}. YouTube can change this limit at any time.
+            </p>
+          </div>
+        </section>
+      ) : null}
+
+      {tool.id === "youtube-chapter-generator" ? (
+        <section className="mt-14 max-w-3xl">
+          <h2 className="text-2xl font-semibold tracking-tight text-[var(--text)]">How to use</h2>
+          <ol className="mt-4 list-decimal space-y-2 pl-5 leading-7 text-[var(--text-muted)]">
+            <li>Enter a time and title for each chapter, or paste an existing timestamp list.</li>
+            <li>Optionally enter the video&apos;s total duration to fully verify the final chapter.</li>
+            <li>Review the requirement checks and fix any errors — copying is disabled while one remains.</li>
+            <li>Copy the finished chapter block into your YouTube description.</li>
+          </ol>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            YouTube chapter requirements
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            To add manual video chapters, YouTube currently requires:
+          </p>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            <li className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-3.5 text-sm leading-6 text-[var(--text-muted)]">
+              <span className="font-semibold text-[var(--text)]">First timestamp: </span>
+              must start at 00:00
+            </li>
+            <li className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-3.5 text-sm leading-6 text-[var(--text-muted)]">
+              <span className="font-semibold text-[var(--text)]">Minimum count: </span>
+              at least {youtubeChaptersMinimumCount.value} timestamps
+            </li>
+            <li className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-3.5 text-sm leading-6 text-[var(--text-muted)]">
+              <span className="font-semibold text-[var(--text)]">Order: </span>
+              listed in ascending order
+            </li>
+            <li className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-3.5 text-sm leading-6 text-[var(--text-muted)]">
+              <span className="font-semibold text-[var(--text)]">Minimum length: </span>
+              each chapter at least {youtubeChaptersMinimumLengthSeconds.value} seconds long
+            </li>
+          </ul>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            {youtubeChaptersManualOverridesAutomatic.value
+              ? "Manual chapters you add override YouTube's automatically generated chapters for that video."
+              : ""}{" "}
+            Verifying the final chapter&apos;s length requires the video&apos;s total duration, since it&apos;s the
+            only way to know how long the last chapter actually runs — enter it above for a complete check.
+          </p>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            Passing every check on this page means your list is formatted correctly. It does not guarantee YouTube
+            will display chapters for your video — YouTube&apos;s help documentation notes that chapters require
+            channel/video eligibility (for example, no active channel strikes) and access to chapters as part of
+            YouTube&apos;s Advanced features, which this tool has no way to check.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">What the results mean</h2>
+          <ul className="mt-4 space-y-2 leading-7 text-[var(--text-muted)]">
+            <li>
+              <span className="font-semibold text-[var(--text)]">Ready</span> — every requirement that can
+              currently be verified passes; the output is ready to copy.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Info / Not verified</span> — optional information
+              is missing, so one check can&apos;t be completed yet: most commonly, no video duration was entered, so
+              the final chapter&apos;s length can&apos;t be confirmed. This does not mean the chapter list is
+              invalid, and it never blocks copying.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Warning</span> — an actual condition worth
+              reviewing before you copy, such as a duplicate timestamp. Usable, but worth a look.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Error</span> — an official requirement fails
+              outright: an unparseable timestamp, a missing title, a first timestamp other than 00:00, timestamps out
+              of order, or a chapter shorter than {youtubeChaptersMinimumLengthSeconds.value} seconds. Copying is
+              disabled until every error is fixed.
+            </li>
+          </ul>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Methodology and limitations
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            Each timestamp is parsed into a total number of seconds and checked against YouTube&apos;s published
+            manual-chapter rules: the first timestamp must equal zero, there must be at least{" "}
+            {youtubeChaptersMinimumCount.value} chapters, each timestamp must be strictly greater than the one
+            before it, and the gap to the next chapter must be at least {youtubeChaptersMinimumLengthSeconds.value}{" "}
+            seconds. That gap is always fully knowable between two entered timestamps, so it&apos;s checked as a
+            pass/fail requirement regardless of whether a video duration was supplied. The one gap that can&apos;t
+            be computed from timestamps alone is the final chapter&apos;s length, which runs to the video&apos;s
+            end — without a supplied duration, that single check is left as unverified informational text rather
+            than assumed to pass or treated as a problem. Supplying a duration turns it into a normal pass/fail
+            check, and a real failure there (final chapter under {youtubeChaptersMinimumLengthSeconds.value}{" "}
+            seconds, or a timestamp at or after the video&apos;s end) is still an error that blocks copying. This
+            tool cannot inspect the actual video, cannot verify a timestamp matches the video&apos;s content, and
+            cannot guarantee how or whether YouTube will display chapters for any specific video.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">FAQ</h2>
+          <div className="mt-4 space-y-5">
+            <div>
+              <p className="font-semibold text-[var(--text)]">Why do I need to enter the video duration?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                Every chapter&apos;s length except the last can be checked from the timestamps alone. The final
+                chapter runs from its timestamp to the end of the video, so without the video&apos;s total duration
+                this tool has no way to confirm it&apos;s at least {youtubeChaptersMinimumLengthSeconds.value}{" "}
+                seconds. Leaving the duration blank is entirely optional — it just leaves that one check marked
+                &quot;Not verified&quot; instead of pass or fail, and everything else is still fully checked and
+                ready to copy.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">
+                Does an unverified final chapter mean something might be wrong?
+              </p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. Missing optional information is not evidence of a problem, so it&apos;s shown as a neutral,
+                informational note — not a warning — and it never changes the overall result away from
+                &quot;Ready&quot; or blocks copying.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">
+                Will this guarantee YouTube shows chapters on my video?
+              </p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. This tool checks formatting only. YouTube&apos;s own eligibility conditions — like channel
+                standing and access to Advanced features — aren&apos;t something this tool can see or test.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Does this tool upload or save my chapters?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. Everything runs locally in your browser. Nothing you type or paste here is sent anywhere.
+              </p>
+            </div>
+          </div>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">Source</h2>
+          <div className="card mt-4 p-4">
+            <p className="text-sm leading-6 text-[var(--text-muted)]">
+              YouTube video chapter requirements referenced on this page are checked against YouTube&apos;s own
+              Help Center article, not third-party advice.
+            </p>
+            <a
+              href={youtubeChaptersMinimumCount.sourceUrl}
+              className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] underline underline-offset-2"
+              target="_blank"
+              rel="noreferrer"
+            >
+              support.google.com — Add chapters to your videos
+              <span aria-hidden="true">↗</span>
+            </a>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">
+              Verified {youtubeChaptersMinimumCount.verifiedAt}. YouTube can change these requirements at any time.
+            </p>
+          </div>
+        </section>
+      ) : null}
+
+      {tool.id === "youtube-title-checker" ? (
+        <section className="mt-14 max-w-3xl">
+          <h2 className="text-2xl font-semibold tracking-tight text-[var(--text)]">How to use</h2>
+          <ol className="mt-4 list-decimal space-y-2 pl-5 leading-7 text-[var(--text-muted)]">
+            <li>Paste or write your exact video title in the editor.</li>
+            <li>Review the character count, remaining or over count, word count, and informational signals.</li>
+            <li>If the title is over the limit, remove the number of characters shown until Copy title re-enables.</li>
+            <li>Optionally normalize repeated spaces, then copy the exact title into YouTube Studio.</li>
+          </ol>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            YouTube title limit
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            YouTube currently limits video titles to{" "}
+            <span className="font-semibold text-[var(--text)]">{youtubeTitleMaxCharacters.value} characters</span>.
+            This tool checks only that official title-length limit as a pass/fail requirement. It does not add an
+            unofficial ideal title length or SEO score.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">What the results mean</h2>
+          <ul className="mt-4 space-y-2 leading-7 text-[var(--text-muted)]">
+            <li>
+              <span className="font-semibold text-[var(--text)]">Empty</span> - no title has been entered yet. This
+              is neutral guidance, not an error.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Ready</span> - the title has 1 to{" "}
+              {youtubeTitleMaxCharacters.value} characters and is ready to copy.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Error</span> - the title is over YouTube&apos;s{" "}
+              {youtubeTitleMaxCharacters.value}-character limit. The exact number of characters to remove is shown,
+              and copying is disabled until the title is back at or under the limit.
+            </li>
+          </ul>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            Word count, capital letters, digits, emoji, and repeated spaces are informational. They can help you
+            inspect the title, but they are not YouTube pass/fail requirements.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">Cleanup explanation</h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            The Normalize repeated spaces button collapses runs of ordinary spaces into a single space. It only runs
+            when you choose it, and it does not rewrite wording, capitalization, punctuation, emoji, or line breaks.
+            Nothing modifies the title automatically while you type.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Methodology and limitations
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            Characters are counted by Unicode code point, matching the convention used by the existing
+            CreatorToolWorks text tools, so a single surrogate-pair emoji counts as one character in this checker.
+            Words are counted as whitespace-separated tokens. Capital letters, digits, emoji, and repeated spaces are
+            counted with deterministic browser-side pattern matching. This tool cannot publish to YouTube, cannot
+            detect every invalid character YouTube may reject, cannot predict ranking or click-through performance,
+            and cannot guarantee how YouTube will process a title after upload.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">FAQ</h2>
+          <div className="mt-4 space-y-5">
+            <div>
+              <p className="font-semibold text-[var(--text)]">Does this tool upload or save my title?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. Everything runs locally in your browser. The title you type is not sent to a server and is not
+                saved after you leave the page.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Why is Copy title disabled?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                Copying is disabled when the title is empty or over YouTube&apos;s 100-character title limit. It
+                re-enables immediately once the title has 1 to 100 characters.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Does the word count affect whether my title passes?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. Word count is informational only. The only YouTube pass/fail requirement checked here is the
+                official 100-character title limit.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Will Normalize repeated spaces change my title automatically?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. Cleanup is an explicit button action. Typing, pasting, and editing never trigger automatic title
+                changes.
+              </p>
+            </div>
+          </div>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">Source</h2>
+          <div className="card mt-4 p-4">
+            <p className="text-sm leading-6 text-[var(--text-muted)]">
+              The title limit on this page is checked against YouTube&apos;s own Help Center documentation, not
+              third-party SEO advice.
+            </p>
+            <a
+              href={youtubeTitleMaxCharacters.sourceUrl}
+              className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] underline underline-offset-2"
+              target="_blank"
+              rel="noreferrer"
+            >
+              support.google.com - Video settings, titles, and descriptions
+              <span aria-hidden="true">↗</span>
+            </a>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">
+              Verified {youtubeTitleMaxCharacters.verifiedAt}. YouTube can change this limit at any time.
+            </p>
+          </div>
+        </section>
+      ) : null}
+
+      {tool.id === "youtube-title-checker" ? (
+        <section className="mt-14 max-w-3xl">
+          <h2 className="text-2xl font-semibold tracking-tight text-[var(--text)]">How to use</h2>
+          <ol className="mt-4 list-decimal space-y-2 pl-5 leading-7 text-[var(--text-muted)]">
+            <li>Paste or write your exact video title in the editor.</li>
+            <li>Review the character count, remaining or over count, word count, and informational signals.</li>
+            <li>If the title is over the limit, remove the number of characters shown until Copy title re-enables.</li>
+            <li>Optionally normalize repeated spaces, then copy the exact title into YouTube Studio.</li>
+          </ol>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            YouTube title limit
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            YouTube currently limits video titles to{" "}
+            <span className="font-semibold text-[var(--text)]">{youtubeTitleMaxCharacters.value} characters</span>.
+            This tool checks only that official title-length limit as a pass/fail requirement. It does not add an
+            unofficial ideal title length or SEO score.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">What the results mean</h2>
+          <ul className="mt-4 space-y-2 leading-7 text-[var(--text-muted)]">
+            <li>
+              <span className="font-semibold text-[var(--text)]">Empty</span> - no title has been entered yet. This
+              is neutral guidance, not an error.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Ready</span> - the title has 1 to{" "}
+              {youtubeTitleMaxCharacters.value} characters and is ready to copy.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Error</span> - the title is over YouTube&apos;s{" "}
+              {youtubeTitleMaxCharacters.value}-character limit. The exact number of characters to remove is shown,
+              and copying is disabled until the title is back at or under the limit.
+            </li>
+          </ul>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            Word count, capital letters, digits, emoji, and repeated spaces are informational. They can help you
+            inspect the title, but they are not YouTube pass/fail requirements.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">Cleanup explanation</h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            The Normalize repeated spaces button collapses runs of ordinary spaces into a single space. It only runs
+            when you choose it, and it does not rewrite wording, capitalization, punctuation, emoji, or line breaks.
+            Nothing modifies the title automatically while you type.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Methodology and limitations
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            Characters are counted by Unicode code point, matching the convention used by the existing
+            CreatorToolWorks text tools, so a single surrogate-pair emoji counts as one character in this checker.
+            Words are counted as whitespace-separated tokens. Capital letters, digits, emoji, and repeated spaces are
+            counted with deterministic browser-side pattern matching. This tool cannot publish to YouTube, cannot
+            detect every invalid character YouTube may reject, cannot predict ranking or click-through performance,
+            and cannot guarantee how YouTube will process a title after upload.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">FAQ</h2>
+          <div className="mt-4 space-y-5">
+            <div>
+              <p className="font-semibold text-[var(--text)]">Does this tool upload or save my title?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. Everything runs locally in your browser. The title you type is not sent to a server and is not
+                saved after you leave the page.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Why is Copy title disabled?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                Copying is disabled when the title is empty or over YouTube&apos;s 100-character title limit. It
+                re-enables immediately once the title has 1 to 100 characters.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Does the word count affect whether my title passes?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. Word count is informational only. The only YouTube pass/fail requirement checked here is the
+                official 100-character title limit.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">
+                Will Normalize repeated spaces change my title automatically?
+              </p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. Cleanup is an explicit button action. Typing, pasting, and editing never trigger automatic title
+                changes.
+              </p>
+            </div>
+          </div>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">Source</h2>
+          <div className="card mt-4 p-4">
+            <p className="text-sm leading-6 text-[var(--text-muted)]">
+              The title limit on this page is checked against YouTube&apos;s own Help Center documentation, not
+              third-party SEO advice.
+            </p>
+            <a
+              href={youtubeTitleMaxCharacters.sourceUrl}
+              className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] underline underline-offset-2"
+              target="_blank"
+              rel="noreferrer"
+            >
+              support.google.com - Video settings, titles, and descriptions
+              <span aria-hidden="true">↗</span>
+            </a>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">
+              Verified {youtubeTitleMaxCharacters.verifiedAt}. YouTube can change this limit at any time.
             </p>
           </div>
         </section>

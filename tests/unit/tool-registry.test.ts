@@ -28,7 +28,7 @@ describe("tool registry", () => {
   });
 
   it("resolves a tool by slug", () => {
-    expect(getToolBySlug("youtube-title-analyzer")?.name).toBe("YouTube Title Analyzer");
+    expect(getToolBySlug("youtube-title-checker")?.name).toBe("YouTube Title Checker");
   });
 
   it("only exposes tools with a working implementation to visitors", () => {
@@ -37,14 +37,30 @@ describe("tool registry", () => {
       "thumbnail-size-checker",
       "youtube-timestamp-generator",
       "youtube-description-formatter",
+      "youtube-chapter-generator",
+      "youtube-title-checker",
     ]);
+  });
+
+  it("has the title checker live and indexable", () => {
+    const titleChecker = getToolBySlug("youtube-title-checker");
+    expect(titleChecker?.status).toBe("live");
+    expect(titleChecker?.implemented).toBe(true);
+    expect(titleChecker?.visibleInCatalog).toBe(true);
+    expect(titleChecker?.sourceFacts).toEqual(["youtube.title.maxCharacters"]);
+  });
+
+  it("has the chapter generator live and indexable", () => {
+    const chapterGenerator = getToolBySlug("youtube-chapter-generator");
+    expect(chapterGenerator?.status).toBe("live");
+    expect(chapterGenerator?.implemented).toBe(true);
+    expect(chapterGenerator?.visibleInCatalog).toBe(true);
   });
 
   it("excludes unimplemented tools from related-tool links", () => {
     const earningsEstimator = getToolBySlug("youtube-earnings-estimator");
     expect(earningsEstimator).toBeDefined();
-    // youtube-earnings-estimator relates only to youtube-title-analyzer, which isn't implemented yet.
-    expect(getRelatedTools(earningsEstimator!).map((tool) => tool.id)).toEqual([]);
+    expect(getRelatedTools(earningsEstimator!).map((tool) => tool.id)).toEqual(["youtube-title-checker"]);
   });
 });
 

@@ -40,6 +40,12 @@ This register is for changeable platform/policy facts. Prefer primary/official d
 ### Re-verified on 2026-08-25 (YouTube Description Formatter build)
 - Video description character limit (support.google.com/youtube/answer/57404): "Video descriptions have a character limit of 5,000 characters and cannot include invalid characters." Cross-checked against support.google.com/youtube/answer/12948449, which separately states "The description allows a maximum of 5000 characters." Matches the 2026-08-19 baseline; now centralized in `src/lib/platform-facts/youtube-description.ts`.
 
+### Re-verified on 2026-08-26 (YouTube Chapter Generator build)
+- Manual video chapters (support.google.com/youtube/answer/9884579): first timestamp must be `00:00`, at least three timestamps, listed in ascending order, minimum chapter length 10 seconds, and manual chapters override automatically generated ones. Matches the 2026-08-19/2026-08-23 baseline; no changes to `src/lib/platform-facts/youtube-chapters.ts` were needed — the Chapter Generator reuses those existing facts rather than duplicating them. Additionally confirmed the Help article notes chapter display depends on channel/video eligibility (e.g. no active channel strikes) and access to chapters as part of YouTube's Advanced features — an eligibility condition this tool cannot check, called out as an explicit limitation on the tool page rather than tested for.
+
+### Re-verified on 2026-09-05 (YouTube Title Checker build)
+- Video title character limit (support.google.com/youtube/answer/57404): "Video titles have a character limit of 100 characters and cannot include invalid characters." Matches the 2026-08-19 baseline; now centralized in `src/lib/platform-facts/youtube-title.ts`. The Title Checker treats only the official 100-character limit as pass/fail. Word count, capital letters, digits, emoji, and repeated spaces are informational signals only.
+
 ## Framework/hosting
 - Next.js metadata — https://nextjs.org/docs/app/getting-started/metadata-and-og-images
 - Next.js sitemap — https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap
