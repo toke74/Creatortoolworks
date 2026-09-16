@@ -6,6 +6,7 @@ import { ThumbnailSizeChecker } from "@/components/tool/thumbnail-size-checker";
 import { ToolIcon } from "@/components/tool/tool-icon";
 import { YoutubeChapterGenerator } from "@/components/tool/youtube-chapter-generator";
 import { YoutubeDescriptionFormatter } from "@/components/tool/youtube-description-formatter";
+import { YoutubeEarningsEstimator } from "@/components/tool/youtube-earnings-estimator";
 import { YoutubeTitleChecker } from "@/components/tool/youtube-title-checker";
 import { YoutubeTimestampGenerator } from "@/components/tool/youtube-timestamp-generator";
 import { formatFileSize } from "@/lib/tools/thumbnail-checker/analyze";
@@ -24,6 +25,13 @@ import {
   youtubeChaptersRequireAscendingOrder,
 } from "@/lib/platform-facts/youtube-chapters";
 import { youtubeDescriptionMaxCharacters } from "@/lib/platform-facts/youtube-description";
+import {
+  youtubeFinalizedEarningsCanDiffer,
+  youtubeRpmIncludesMultipleRevenueSources,
+  youtubeRpmRevenuePerThousandViews,
+  youtubeShortsRpmUsesEngagedViews,
+  youtubeVideoRpmUsesViews,
+} from "@/lib/platform-facts/youtube-earnings";
 import { youtubeTitleMaxCharacters } from "@/lib/platform-facts/youtube-title";
 import { siteConfig } from "@/lib/seo/site";
 import { getRelatedTools, getToolBySlug, tools } from "@/lib/tools/registry";
@@ -39,6 +47,7 @@ const WORKSPACE_HEADINGS: Record<string, string> = {
   "youtube-timestamp-generator": "Build your timestamps",
   "youtube-description-formatter": "Format your description",
   "youtube-chapter-generator": "Build your chapters",
+  "youtube-earnings-estimator": "Estimate an earnings scenario",
   "youtube-title-checker": "Check your title",
 };
 
@@ -52,6 +61,8 @@ const TOOL_INTRO_OVERRIDES: Record<string, string> = {
     "Check your description against YouTube's character limit, review word/line/link/hashtag counts, and apply safe, non-destructive cleanup before you copy it in.",
   "youtube-chapter-generator":
     "Build a timestamped chapter list and check it against YouTube's published manual-chapter requirements — first timestamp, minimum count, order, and minimum length — before you paste it into a description.",
+  "youtube-earnings-estimator":
+    "Estimate a revenue scenario from views or engaged views and your own low/high RPM assumptions. The result is transparent math, not a prediction of what YouTube will pay.",
   "youtube-title-checker":
     "Check a YouTube video title against the official 100-character title limit, review informational counts, and copy the exact title when it is ready.",
 };
@@ -120,6 +131,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
           tool.id === "youtube-timestamp-generator" ||
           tool.id === "youtube-description-formatter" ||
           tool.id === "youtube-chapter-generator" ||
+          tool.id === "youtube-earnings-estimator" ||
           tool.id === "youtube-title-checker"
             ? "max-w-5xl"
             : "max-w-4xl"
@@ -147,6 +159,11 @@ export default async function ToolPage({ params }: ToolPageProps) {
         {tool.id === "youtube-chapter-generator" ? (
           <div className="mt-4">
             <YoutubeChapterGenerator toolId={tool.analyticsId} />
+          </div>
+        ) : null}
+        {tool.id === "youtube-earnings-estimator" ? (
+          <div className="mt-4">
+            <YoutubeEarningsEstimator toolId={tool.analyticsId} />
           </div>
         ) : null}
         {tool.id === "youtube-title-checker" ? (
@@ -689,6 +706,147 @@ export default async function ToolPage({ params }: ToolPageProps) {
             <p className="mt-1 text-xs text-[var(--text-muted)]">
               Verified {youtubeChaptersMinimumCount.verifiedAt}. YouTube can change these requirements at any time.
             </p>
+          </div>
+        </section>
+      ) : null}
+
+      {tool.id === "youtube-earnings-estimator" ? (
+        <section className="mt-14 max-w-3xl">
+          <h2 className="text-2xl font-semibold tracking-tight text-[var(--text)]">How to use</h2>
+          <ol className="mt-4 list-decimal space-y-2 pl-5 leading-7 text-[var(--text-muted)]">
+            <li>Enter the relevant view count: video views for video RPM, or engaged views for Shorts RPM.</li>
+            <li>Enter a low RPM and high RPM in the same currency.</li>
+            <li>Review the estimated amount or range and the formula basis.</li>
+            <li>Copy the plain-text summary if you want to save the scenario.</li>
+          </ol>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            How the estimate is calculated
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            This calculator uses one transparent formula:{" "}
+            <span className="font-semibold text-[var(--text)]">views / 1,000 x RPM</span>. A 100,000-view scenario at
+            1.00 to 2.00 RPM produces 100.00 to 200.00 in the same currency as the RPM inputs. Those example values
+            are illustrative only, not average or typical YouTube rates.
+          </p>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            If low RPM and high RPM are the same value, the tool shows one estimated amount instead of an artificial
+            range. It does not convert currencies, convert CPM into RPM, or apply any hard-coded YouTube revenue-share
+            percentage.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">What RPM means</h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            {youtubeRpmRevenuePerThousandViews.value} YouTube also says RPM can incorporate multiple on-platform
+            revenue sources, including {youtubeRpmIncludesMultipleRevenueSources.value.replace("RPM can include ", "")}
+          </p>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            {youtubeVideoRpmUsesViews.value} {youtubeShortsRpmUsesEngagedViews.value} For the most meaningful
+            scenario, use your own historical RPM from YouTube Analytics. If you do not have historical RPM data, the
+            calculator result is hypothetical based solely on the RPM assumptions you enter.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">What the results mean</h2>
+          <ul className="mt-4 space-y-2 leading-7 text-[var(--text-muted)]">
+            <li>
+              <span className="font-semibold text-[var(--text)]">Neutral</span> - required fields are not complete
+              yet. This is not an error.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Ready</span> - views are a valid non-negative whole
+              number, RPM values are valid non-negative decimals, and high RPM is greater than or equal to low RPM.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Error</span> - an input is malformed, negative,
+              fractional where a whole view count is required, too large to handle safely, or high RPM is below low
+              RPM.
+            </li>
+          </ul>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Methodology and limitations
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            This is an assumption-based calculator, not guaranteed earnings and not an official YouTube forecast. It
+            does not determine whether a channel or video is eligible for monetization. RPM can vary over time, and{" "}
+            {youtubeFinalizedEarningsCanDiffer.value} RPM does not represent every possible source of creator income.
+          </p>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            The calculation runs entirely in your browser. No account data, channel data, uploads, API keys, or server
+            requests are required for the estimate.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">FAQ</h2>
+          <div className="mt-4 space-y-5">
+            <div>
+              <p className="font-semibold text-[var(--text)]">Does this predict what YouTube will pay me?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. It only applies your own RPM assumptions to a view count. Actual revenue depends on many factors
+                and can change after YouTube finalizes earnings.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">What RPM should I enter?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                Ideally, use your own historical RPM from YouTube Analytics. This tool intentionally does not publish
+                unofficial average, typical, niche, country, or industry RPM values.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Can I enter CPM instead?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. CPM and RPM are different metrics. This calculator accepts RPM only and does not convert CPM into
+                RPM.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Does this tool upload or save my numbers?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. The calculation runs locally in your browser and does not require a YouTube account connection.
+              </p>
+            </div>
+          </div>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">Official sources</h2>
+          <div className="mt-4 grid gap-3">
+            <div className="card p-4">
+              <p className="text-sm leading-6 text-[var(--text-muted)]">
+                RPM definitions and the videos-vs-Shorts view basis are checked against YouTube&apos;s own analytics
+                documentation.
+              </p>
+              <a
+                href={youtubeRpmRevenuePerThousandViews.sourceUrl}
+                className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] underline underline-offset-2"
+                target="_blank"
+                rel="noreferrer"
+              >
+                support.google.com - Check your YouTube revenue
+                <span aria-hidden="true">↗</span>
+              </a>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">
+                Verified {youtubeRpmRevenuePerThousandViews.verifiedAt}. YouTube can change these definitions at any
+                time.
+              </p>
+            </div>
+            <div className="card p-4">
+              <p className="text-sm leading-6 text-[var(--text-muted)]">
+                Estimated and finalized earnings limitations are checked against YouTube&apos;s earnings
+                documentation.
+              </p>
+              <a
+                href={youtubeFinalizedEarningsCanDiffer.sourceUrl}
+                className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] underline underline-offset-2"
+                target="_blank"
+                rel="noreferrer"
+              >
+                support.google.com - Earn money on YouTube
+                <span aria-hidden="true">↗</span>
+              </a>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">
+                Verified {youtubeFinalizedEarningsCanDiffer.verifiedAt}. YouTube can change earnings documentation at
+                any time.
+              </p>
+            </div>
           </div>
         </section>
       ) : null}

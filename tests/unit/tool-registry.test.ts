@@ -38,7 +38,22 @@ describe("tool registry", () => {
       "youtube-timestamp-generator",
       "youtube-description-formatter",
       "youtube-chapter-generator",
+      "youtube-earnings-estimator",
       "youtube-title-checker",
+    ]);
+  });
+
+  it("has the earnings estimator live and indexable", () => {
+    const earningsEstimator = getToolBySlug("youtube-earnings-estimator");
+    expect(earningsEstimator?.status).toBe("live");
+    expect(earningsEstimator?.implemented).toBe(true);
+    expect(earningsEstimator?.visibleInCatalog).toBe(true);
+    expect(earningsEstimator?.sourceFacts).toEqual([
+      "youtube.analytics.rpm.definition",
+      "youtube.analytics.rpm.revenueSources",
+      "youtube.analytics.rpm.shortsBasis",
+      "youtube.analytics.rpm.videoBasis",
+      "youtube.analytics.estimatedRevenue.adjustments",
     ]);
   });
 
@@ -57,10 +72,13 @@ describe("tool registry", () => {
     expect(chapterGenerator?.visibleInCatalog).toBe(true);
   });
 
-  it("excludes unimplemented tools from related-tool links", () => {
+  it("includes the live earnings estimator related tools", () => {
     const earningsEstimator = getToolBySlug("youtube-earnings-estimator");
     expect(earningsEstimator).toBeDefined();
-    expect(getRelatedTools(earningsEstimator!).map((tool) => tool.id)).toEqual(["youtube-title-checker"]);
+    expect(getRelatedTools(earningsEstimator!).map((tool) => tool.id)).toEqual([
+      "youtube-title-checker",
+      "youtube-description-formatter",
+    ]);
   });
 });
 
