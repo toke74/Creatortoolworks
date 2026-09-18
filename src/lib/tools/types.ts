@@ -6,7 +6,8 @@ export type ToolCategory =
   | "descriptions"
   | "timestamps"
   | "chapters"
-  | "monetization";
+  | "monetization"
+  | "hashtags";
 
 export interface ToolDefinition {
   id: string;

@@ -7,6 +7,7 @@ import { ToolIcon } from "@/components/tool/tool-icon";
 import { YoutubeChapterGenerator } from "@/components/tool/youtube-chapter-generator";
 import { YoutubeDescriptionFormatter } from "@/components/tool/youtube-description-formatter";
 import { YoutubeEarningsEstimator } from "@/components/tool/youtube-earnings-estimator";
+import { YoutubeHashtagChecker } from "@/components/tool/youtube-hashtag-checker";
 import { YoutubeTitleChecker } from "@/components/tool/youtube-title-checker";
 import { YoutubeTimestampGenerator } from "@/components/tool/youtube-timestamp-generator";
 import { formatFileSize } from "@/lib/tools/thumbnail-checker/analyze";
@@ -32,6 +33,13 @@ import {
   youtubeShortsRpmUsesEngagedViews,
   youtubeVideoRpmUsesViews,
 } from "@/lib/platform-facts/youtube-earnings";
+import {
+  youtubeHashtagsDescriptionMayDisplayCount,
+  youtubeHashtagsDisplayDeterminedByYoutube,
+  youtubeHashtagsIgnoreAllAboveCount,
+  youtubeHashtagsMustFollowPolicies,
+  youtubeHashtagsNoSpaces,
+} from "@/lib/platform-facts/youtube-hashtags";
 import { youtubeTitleMaxCharacters } from "@/lib/platform-facts/youtube-title";
 import { siteConfig } from "@/lib/seo/site";
 import { getRelatedTools, getToolBySlug, tools } from "@/lib/tools/registry";
@@ -49,6 +57,7 @@ const WORKSPACE_HEADINGS: Record<string, string> = {
   "youtube-chapter-generator": "Build your chapters",
   "youtube-earnings-estimator": "Estimate an earnings scenario",
   "youtube-title-checker": "Check your title",
+  "youtube-hashtag-checker": "Check your hashtags",
 };
 
 // The registry's `summary` field also drives the meta description and catalog card,
@@ -65,6 +74,8 @@ const TOOL_INTRO_OVERRIDES: Record<string, string> = {
     "Estimate a revenue scenario from views or engaged views and your own low/high RPM assumptions. The result is transparent math, not a prediction of what YouTube will pay.",
   "youtube-title-checker":
     "Check a YouTube video title against the official 100-character title limit, review informational counts, and copy the exact title when it is ready.",
+  "youtube-hashtag-checker":
+    "Extract hashtags from a title, description, or hashtag list, count duplicates, and check the result against YouTube's published 60-hashtag threshold.",
 };
 
 export function generateStaticParams() {
@@ -132,7 +143,8 @@ export default async function ToolPage({ params }: ToolPageProps) {
           tool.id === "youtube-description-formatter" ||
           tool.id === "youtube-chapter-generator" ||
           tool.id === "youtube-earnings-estimator" ||
-          tool.id === "youtube-title-checker"
+          tool.id === "youtube-title-checker" ||
+          tool.id === "youtube-hashtag-checker"
             ? "max-w-5xl"
             : "max-w-4xl"
         }`}
@@ -169,6 +181,11 @@ export default async function ToolPage({ params }: ToolPageProps) {
         {tool.id === "youtube-title-checker" ? (
           <div className="mt-4">
             <YoutubeTitleChecker toolId={tool.analyticsId} />
+          </div>
+        ) : null}
+        {tool.id === "youtube-hashtag-checker" ? (
+          <div className="mt-4">
+            <YoutubeHashtagChecker toolId={tool.analyticsId} />
           </div>
         ) : null}
       </section>
@@ -1076,6 +1093,143 @@ export default async function ToolPage({ params }: ToolPageProps) {
             </a>
             <p className="mt-1 text-xs text-[var(--text-muted)]">
               Verified {youtubeTitleMaxCharacters.verifiedAt}. YouTube can change this limit at any time.
+            </p>
+          </div>
+        </section>
+      ) : null}
+
+      {tool.id === "youtube-hashtag-checker" ? (
+        <section className="mt-14 max-w-3xl">
+          <h2 className="text-2xl font-semibold tracking-tight text-[var(--text)]">How to use</h2>
+          <ol className="mt-4 list-decimal space-y-2 pl-5 leading-7 text-[var(--text-muted)]">
+            <li>Paste a YouTube title, description, or hashtag list into the editor.</li>
+            <li>Review the total hashtags, unique hashtags, duplicate count, and extracted preview.</li>
+            <li>If the total is over {youtubeHashtagsIgnoreAllAboveCount.value}, remove hashtags until the page returns to Ready.</li>
+            <li>Optionally remove exact duplicate hashtags, then copy the displayed extracted hashtag output.</li>
+          </ol>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            YouTube hashtag rules
+          </h2>
+          <ul className="mt-4 space-y-3 leading-7 text-[var(--text-muted)]">
+            <li>
+              YouTube says hashtags may be added to video titles and descriptions.
+            </li>
+            <li>
+              {youtubeHashtagsNoSpaces.value
+                ? "YouTube says hashtags do not contain spaces. For example, #CreatorTools is one hashtag; #Creator Tools is not treated as a multi-word hashtag by this checker."
+                : ""}
+            </li>
+            <li>
+              If content has more than{" "}
+              <span className="font-semibold text-[var(--text)]">
+                {youtubeHashtagsIgnoreAllAboveCount.value} hashtags
+              </span>
+              , YouTube&apos;s published policy says it ignores every hashtag on that content.
+            </li>
+            <li>
+              Up to {youtubeHashtagsDescriptionMayDisplayCount.value} hashtags from a description may appear near the
+              video title, but{" "}
+              {youtubeHashtagsDisplayDeterminedByYoutube.value
+                ? "YouTube determines which hashtags are considered most engaging."
+                : "display is determined by YouTube."}{" "}
+              This tool does not show a fake top-three preview.
+            </li>
+            <li>
+              {youtubeHashtagsMustFollowPolicies.value
+                ? "Hashtags must comply with YouTube policies, including rules against misleading, harassing, hateful, sexual, vulgar, or non-hashtag metadata use."
+                : ""}
+            </li>
+          </ul>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">What the results mean</h2>
+          <ul className="mt-4 space-y-2 leading-7 text-[var(--text-muted)]">
+            <li>
+              <span className="font-semibold text-[var(--text)]">Neutral</span> - the editor is empty or no hashtags
+              were found. This is not a policy error.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Ready</span> - 1 to{" "}
+              {youtubeHashtagsIgnoreAllAboveCount.value} hashtags were extracted, and Copy hashtags is enabled.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Error</span> - 61 or more hashtags were extracted.
+              Copy hashtags is disabled until the list is back at {youtubeHashtagsIgnoreAllAboveCount.value} or fewer.
+            </li>
+          </ul>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            Duplicate hashtags are informational in this tool. They are not treated as an official YouTube policy
+            failure unless the total hashtag count goes over the published threshold.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">Duplicate cleanup</h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            Remove duplicate hashtags is an explicit action. It compares extracted hashtag text exactly and
+            case-sensitively, so <code>#Creator</code> and <code>#creator</code> are different. It preserves the first
+            occurrence and removes later exact duplicates without changing spelling, capitalization, or wording. Running
+            it again after duplicates are removed makes no further changes.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Methodology and limitations
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            The parser runs entirely in your browser and looks for <code>#</code> followed by Unicode letters, numbers,
+            combining marks, or underscores. It stops at spaces and punctuation, which keeps punctuation next to a
+            hashtag out of the extracted result and follows YouTube&apos;s no-spaces guidance without guessing what the
+            user meant. It cannot check hashtag popularity, search volume, trends, ranking impact, policy compliance,
+            or which description hashtags YouTube will display near the title.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">FAQ</h2>
+          <div className="mt-4 space-y-5">
+            <div>
+              <p className="font-semibold text-[var(--text)]">Does this tool upload or save my text?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. The extraction and cleanup run locally in your browser. No YouTube account, API, upload, or server
+                processing is required.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Why does #Creator Tools only show #Creator?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                YouTube says hashtags do not contain spaces. This checker will not silently rewrite prose into a
+                different hashtag, so the word after the space remains normal text.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Is there a best number of hashtags?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                This tool does not invent an ideal count, SEO score, popularity score, search volume, or trending
+                recommendation. It only extracts hashtags and checks the official over-60 threshold.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Will the first three description hashtags show by my title?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                Not necessarily. YouTube says up to three description hashtags considered most engaging may appear by
+                the video title, and this tool cannot know which hashtags YouTube will choose.
+              </p>
+            </div>
+          </div>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">Official source</h2>
+          <div className="card mt-4 p-4">
+            <p className="text-sm leading-6 text-[var(--text-muted)]">
+              The hashtag rules on this page are checked against YouTube&apos;s own Help Center documentation, not
+              third-party hashtag or SEO advice.
+            </p>
+            <a
+              href={youtubeHashtagsIgnoreAllAboveCount.sourceUrl}
+              className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] underline underline-offset-2"
+              target="_blank"
+              rel="noreferrer"
+            >
+              support.google.com - Find playlists and videos using hashtags
+              <span aria-hidden="true">-&gt;</span>
+            </a>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">
+              Verified {youtubeHashtagsIgnoreAllAboveCount.verifiedAt}. YouTube can change these rules at any time.
             </p>
           </div>
         </section>

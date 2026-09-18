@@ -18,8 +18,8 @@ function fixture(overrides: Partial<ToolDefinition>): ToolDefinition {
 }
 
 describe("tool registry", () => {
-  it("contains exactly the six MVP tools", () => {
-    expect(tools).toHaveLength(6);
+  it("contains the six MVP tools plus the live hashtag checker", () => {
+    expect(tools).toHaveLength(7);
   });
 
   it("uses unique ids and slugs", () => {
@@ -40,6 +40,23 @@ describe("tool registry", () => {
       "youtube-chapter-generator",
       "youtube-earnings-estimator",
       "youtube-title-checker",
+      "youtube-hashtag-checker",
+    ]);
+  });
+
+  it("has the hashtag checker live, implemented, and catalog-visible", () => {
+    const hashtagChecker = getToolBySlug("youtube-hashtag-checker");
+    expect(hashtagChecker?.status).toBe("live");
+    expect(hashtagChecker?.implemented).toBe(true);
+    expect(hashtagChecker?.visibleInCatalog).toBe(true);
+    expect(hashtagChecker?.category).toBe("hashtags");
+    expect(hashtagChecker?.sourceFacts).toEqual([
+      "youtube.hashtags.allowedLocations",
+      "youtube.hashtags.noSpaces",
+      "youtube.hashtags.ignoreAllAboveCount",
+      "youtube.hashtags.descriptionMayDisplayCount",
+      "youtube.hashtags.displayDeterminedByYoutube",
+      "youtube.hashtags.mustFollowPolicies",
     ]);
   });
 

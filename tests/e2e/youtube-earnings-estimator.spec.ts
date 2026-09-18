@@ -19,7 +19,7 @@ test.describe("YouTube Earnings Estimator", () => {
     await page.getByRole("button", { name: "Copy estimate" }).click();
     await expect(page.getByRole("status")).toContainText(/copied/i);
     if (browserName === "chromium") {
-      await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(
+      await expect.poll(() => page.evaluate(() => navigator.clipboard.readText().then((text) => text.replace(/\r\n/g, "\n")))).toBe(
         [
           "YouTube Earnings Estimator",
           "Views/engaged views: 100,000",

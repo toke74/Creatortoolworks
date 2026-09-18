@@ -105,6 +105,26 @@ export const tools: readonly ToolDefinition[] = [
     relatedToolIds: ["thumbnail-size-checker", "youtube-description-formatter"],
     sourceFacts: ["youtube.title.maxCharacters"],
   },
+  {
+    id: "youtube-hashtag-checker",
+    name: "YouTube Hashtag Checker",
+    slug: "youtube-hashtag-checker",
+    category: "hashtags",
+    status: "live",
+    implemented: true,
+    visibleInCatalog: true,
+    summary: "Extract hashtags from YouTube text and check the official 60-hashtag threshold.",
+    analyticsId: "youtube_hashtag_checker",
+    relatedToolIds: ["youtube-description-formatter", "youtube-title-checker"],
+    sourceFacts: [
+      "youtube.hashtags.allowedLocations",
+      "youtube.hashtags.noSpaces",
+      "youtube.hashtags.ignoreAllAboveCount",
+      "youtube.hashtags.descriptionMayDisplayCount",
+      "youtube.hashtags.displayDeterminedByYoutube",
+      "youtube.hashtags.mustFollowPolicies",
+    ],
+  },
 ];
 
 export function getToolBySlug(slug: string): ToolDefinition | undefined {

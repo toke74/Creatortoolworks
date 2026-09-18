@@ -26,6 +26,7 @@ This register is for changeable platform/policy facts. Prefer primary/official d
 - Thumbnail/title tips — https://support.google.com/youtube/answer/12340300?hl=en
 - YouTube Analytics RPM — https://support.google.com/youtube/answer/9314357
 - YouTube earnings/finalized payments — https://support.google.com/youtube/answer/72902
+- Hashtag use on YouTube — https://support.google.com/youtube/answer/6390658
 
 ### Baseline facts verified on 2026-08-19
 - YouTube video title limit: 100 characters (official video settings help).
@@ -51,6 +52,9 @@ This register is for changeable platform/policy facts. Prefer primary/official d
 ### Re-verified on 2026-09-15 (YouTube Earnings Estimator build)
 - RPM (support.google.com/youtube/answer/9314357): YouTube defines RPM as how much a creator earned per 1,000 views after YouTube revenue share, and says it can include ads, channel memberships, YouTube Premium revenue, Super Chat, Super Stickers, Super Thanks, and Shopping. For Shorts, RPM is based on engaged views; for videos, RPM is based on views. Centralized in `src/lib/platform-facts/youtube-earnings.ts`.
 - Estimated/finalized earnings (support.google.com/youtube/answer/72902): YouTube Analytics estimated revenue can be adjusted, and finalized earnings can differ from estimated revenue. Centralized in `src/lib/platform-facts/youtube-earnings.ts`.
+
+### Re-verified on 2026-09-16 (YouTube Hashtag Checker build)
+- Hashtag use on YouTube (support.google.com/youtube/answer/6390658): hashtags may be added to video titles and descriptions; hashtags do not contain spaces; if a video or playlist has more than 60 hashtags, YouTube ignores every hashtag on that content; up to three hashtags from a video description that YouTube considers most engaging may appear by the video title; YouTube determines which hashtags appear; and hashtags must meet YouTube policies. Centralized in `src/lib/platform-facts/youtube-hashtags.ts`.
 
 ## Framework/hosting
 - Next.js metadata — https://nextjs.org/docs/app/getting-started/metadata-and-og-images

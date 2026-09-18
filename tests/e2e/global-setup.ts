@@ -16,6 +16,7 @@ const ROUTES_TO_WARM = [
   "/youtube-tools/youtube-chapter-generator",
   "/youtube-tools/youtube-earnings-estimator",
   "/youtube-tools/youtube-title-checker",
+  "/youtube-tools/youtube-hashtag-checker",
   "/sitemap.xml",
 ];
 

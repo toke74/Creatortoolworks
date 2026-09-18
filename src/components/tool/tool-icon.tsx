@@ -55,6 +55,15 @@ function IconPaths({ category }: { category: ToolCategory }) {
           <path d="M12 7.5v9M14.5 9.75c0-1.24-1.12-2.25-2.5-2.25s-2.5 1.01-2.5 2.25 1.12 1.75 2.5 2 2.5.76 2.5 2-1.12 2-2.5 2-2.5-.6-2.5-1.75" strokeLinecap="round" />
         </>
       );
+    case "hashtags":
+      return (
+        <>
+          <path d="M9.5 5.5l-1 13" strokeLinecap="round" />
+          <path d="M15.5 5.5l-1 13" strokeLinecap="round" />
+          <path d="M5.5 9h13" strokeLinecap="round" />
+          <path d="M5 15h13" strokeLinecap="round" />
+        </>
+      );
     default:
       return <circle cx="12" cy="12" r="7.5" />;
   }

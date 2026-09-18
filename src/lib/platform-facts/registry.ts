@@ -2,6 +2,7 @@ import type { PlatformFact } from "./types";
 import { youtubeChaptersFacts } from "./youtube-chapters";
 import { youtubeDescriptionFacts } from "./youtube-description";
 import { youtubeEarningsFacts } from "./youtube-earnings";
+import { youtubeHashtagFacts } from "./youtube-hashtags";
 import { youtubeThumbnailFacts } from "./youtube-thumbnail";
 import { youtubeTitleFacts } from "./youtube-title";
 
@@ -12,5 +13,6 @@ export const platformFacts: readonly PlatformFact<unknown>[] = [
   ...youtubeChaptersFacts,
   ...youtubeDescriptionFacts,
   ...youtubeEarningsFacts,
+  ...youtubeHashtagFacts,
   ...youtubeTitleFacts,
 ];
