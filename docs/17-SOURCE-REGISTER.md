@@ -27,6 +27,12 @@ This register is for changeable platform/policy facts. Prefer primary/official d
 - YouTube Analytics RPM — https://support.google.com/youtube/answer/9314357
 - YouTube earnings/finalized payments — https://support.google.com/youtube/answer/72902
 - Hashtag use on YouTube — https://support.google.com/youtube/answer/6390658
+- Understand three-minute YouTube Shorts — https://support.google.com/youtube/answer/15424877
+- Upload YouTube Shorts — https://support.google.com/youtubecreatorstudio/answer/12779649
+- Upload videos longer than 15 minutes - https://support.google.com/youtube/answer/71673
+- Supported YouTube file formats - https://support.google.com/youtube/troubleshooter/2888402
+- Upload YouTube videos - https://support.google.com/youtube/answer/57407
+- Add end screens to YouTube videos - https://support.google.com/youtube/answer/6388789
 
 ### Baseline facts verified on 2026-08-19
 - YouTube video title limit: 100 characters (official video settings help).
@@ -55,6 +61,19 @@ This register is for changeable platform/policy facts. Prefer primary/official d
 
 ### Re-verified on 2026-09-16 (YouTube Hashtag Checker build)
 - Hashtag use on YouTube (support.google.com/youtube/answer/6390658): hashtags may be added to video titles and descriptions; hashtags do not contain spaces; if a video or playlist has more than 60 hashtags, YouTube ignores every hashtag on that content; up to three hashtags from a video description that YouTube considers most engaging may appear by the video title; YouTube determines which hashtags appear; and hashtags must meet YouTube policies. Centralized in `src/lib/platform-facts/youtube-hashtags.ts`.
+
+### Re-verified on 2026-09-18 (YouTube Shorts Format Checker build)
+- Understand three-minute YouTube Shorts (support.google.com/youtube/answer/15424877): for standard channels, videos uploaded on or after 2024-10-15 with a square or vertical aspect ratio up to three minutes in length are categorized as Shorts; for Official Artist Channels, the corresponding date is 2025-12-08. The same page says Shorts can be uploaded up to three minutes through the YouTube app and YouTube Studio. It also documents active copyright/Content ID claim limitations for Shorts over one minute, with a published 2026-09-24 change for new claimed Shorts. Centralized in `src/lib/platform-facts/youtube-shorts.ts`.
+- Upload YouTube Shorts (support.google.com/youtubecreatorstudio/answer/12779649): YouTube Studio upload guidance says to select a short video file up to three minutes and with a square or vertical aspect ratio. Centralized in `src/lib/platform-facts/youtube-shorts.ts`.
+
+### Re-verified on 2026-09-19 (YouTube Upload Limit Checker build)
+- Upload videos longer than 15 minutes (support.google.com/youtube/answer/71673): YouTube says users can upload videos up to 15 minutes by default, verified accounts can upload videos longer than 15 minutes, and the maximum file size is 256 GB or 12 hours, whichever is less. Centralized in `src/lib/platform-facts/youtube-upload.ts`.
+- Supported YouTube file formats (support.google.com/youtube/troubleshooter/2888402): YouTube publishes a separate supported-format list. The Upload Limit Checker links to this official list but does not treat filename extension or browser MIME type as definitive codec/container proof.
+- Upload YouTube videos (support.google.com/youtube/answer/57407): YouTube documents upload workflow details and notes that channels have a daily upload limit. The Upload Limit Checker calls daily limits out as a limitation because local metadata cannot determine the user's current channel limit.
+
+### Re-verified on 2026-09-29 (YouTube End Screen Timing Planner build)
+- Add end screens to videos (support.google.com/youtube/answer/6388789): YouTube says end screens can be added to the last 5-20 seconds of a video, the video has to be at least 25 seconds long, standard 16:9 videos can have up to four elements, other aspect ratios may have a lower limit, end screens are not available in certain contexts including videos set as made for kids, and viewers can hide end screens. Centralized in `src/lib/platform-facts/youtube-end-screens.ts`.
+- Upload YouTube videos (support.google.com/youtube/answer/57407): YouTube's upload workflow also states that a video must be 25 seconds or longer to add an end screen. Centralized in `src/lib/platform-facts/youtube-end-screens.ts`.
 
 ## Framework/hosting
 - Next.js metadata — https://nextjs.org/docs/app/getting-started/metadata-and-og-images

@@ -64,6 +64,32 @@ function IconPaths({ category }: { category: ToolCategory }) {
           <path d="M5 15h13" strokeLinecap="round" />
         </>
       );
+    case "shorts":
+      return (
+        <>
+          <rect x="7.5" y="3.75" width="9" height="16.5" rx="2.25" />
+          <path d="M11 9l4 3-4 3z" strokeLinejoin="round" />
+          <path d="M10.5 18h3" strokeLinecap="round" />
+        </>
+      );
+    case "uploads":
+      return (
+        <>
+          <path d="M12 4v10" strokeLinecap="round" />
+          <path d="M8.5 7.5 12 4l3.5 3.5" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="4.5" y="14" width="15" height="6" rx="2" />
+        </>
+      );
+    case "end-screens":
+      return (
+        <>
+          <rect x="4.5" y="5" width="15" height="11" rx="2" />
+          <path d="M8 18.5h8" strokeLinecap="round" />
+          <path d="M12 16v2.5" strokeLinecap="round" />
+          <path d="M14.5 9.5h2.25v2.25" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M16.75 9.5 12.5 13.75" strokeLinecap="round" />
+        </>
+      );
     default:
       return <circle cx="12" cy="12" r="7.5" />;
   }

@@ -18,8 +18,8 @@ function fixture(overrides: Partial<ToolDefinition>): ToolDefinition {
 }
 
 describe("tool registry", () => {
-  it("contains the six MVP tools plus the live hashtag checker", () => {
-    expect(tools).toHaveLength(7);
+  it("contains the six MVP tools plus the hashtag, Shorts format, upload limit, and end-screen timing tools", () => {
+    expect(tools).toHaveLength(10);
   });
 
   it("uses unique ids and slugs", () => {
@@ -41,6 +41,58 @@ describe("tool registry", () => {
       "youtube-earnings-estimator",
       "youtube-title-checker",
       "youtube-hashtag-checker",
+      "youtube-shorts-format-checker",
+      "youtube-upload-limit-checker",
+      "youtube-end-screen-timing-planner",
+    ]);
+  });
+
+  it("has the end screen timing planner live, implemented, catalog-visible, and indexable", () => {
+    const endScreenPlanner = getToolBySlug("youtube-end-screen-timing-planner");
+    expect(endScreenPlanner?.status).toBe("live");
+    expect(endScreenPlanner?.implemented).toBe(true);
+    expect(endScreenPlanner?.visibleInCatalog).toBe(true);
+    expect(endScreenPlanner?.category).toBe("end-screens");
+    expect(endScreenPlanner?.sourceFacts).toEqual([
+      "youtube.endScreens.minWindowSeconds",
+      "youtube.endScreens.maxWindowSeconds",
+      "youtube.endScreens.minVideoDurationSeconds",
+      "youtube.endScreens.standardAspectMaxElements",
+      "youtube.endScreens.otherAspectRatiosMayHaveLowerLimit",
+      "youtube.endScreens.madeForKidsUnavailable",
+      "youtube.endScreens.uploadWorkflowMinimumDuration",
+    ]);
+  });
+
+  it("has the upload limit checker live, implemented, catalog-visible, and indexable", () => {
+    const uploadLimitChecker = getToolBySlug("youtube-upload-limit-checker");
+    expect(uploadLimitChecker?.status).toBe("live");
+    expect(uploadLimitChecker?.implemented).toBe(true);
+    expect(uploadLimitChecker?.visibleInCatalog).toBe(true);
+    expect(uploadLimitChecker?.category).toBe("uploads");
+    expect(uploadLimitChecker?.sourceFacts).toEqual([
+      "youtube.upload.maxFileSizeBytes",
+      "youtube.upload.maxDurationSeconds",
+      "youtube.upload.defaultDurationSeconds",
+      "youtube.upload.longerVideosRequireVerification",
+      "youtube.upload.supportedFormatsAreSeparate",
+      "youtube.upload.dailyLimitExists",
+    ]);
+  });
+
+  it("has the Shorts format checker live, implemented, catalog-visible, and indexable", () => {
+    const shortsChecker = getToolBySlug("youtube-shorts-format-checker");
+    expect(shortsChecker?.status).toBe("live");
+    expect(shortsChecker?.implemented).toBe(true);
+    expect(shortsChecker?.visibleInCatalog).toBe(true);
+    expect(shortsChecker?.category).toBe("shorts");
+    expect(shortsChecker?.sourceFacts).toEqual([
+      "youtube.shorts.maxDurationSeconds",
+      "youtube.shorts.allowsSquareOrVertical",
+      "youtube.shorts.uploadRequiresSquareOrVertical",
+      "youtube.shorts.standardChannelClassificationStartDate",
+      "youtube.shorts.officialArtistClassificationStartDate",
+      "youtube.shorts.overOneMinuteContentIdClaimLimitation",
     ]);
   });
 

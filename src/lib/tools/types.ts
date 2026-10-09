@@ -7,7 +7,10 @@ export type ToolCategory =
   | "timestamps"
   | "chapters"
   | "monetization"
-  | "hashtags";
+  | "hashtags"
+  | "shorts"
+  | "uploads"
+  | "end-screens";
 
 export interface ToolDefinition {
   id: string;

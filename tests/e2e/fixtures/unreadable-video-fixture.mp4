@@ -1,0 +1,2 @@
+Deterministic unreadable local fixture for browser fallback tests.
+This is intentionally not a playable video and must never be used for valid metadata assertions.

@@ -7,9 +7,12 @@ import { ToolIcon } from "@/components/tool/tool-icon";
 import { YoutubeChapterGenerator } from "@/components/tool/youtube-chapter-generator";
 import { YoutubeDescriptionFormatter } from "@/components/tool/youtube-description-formatter";
 import { YoutubeEarningsEstimator } from "@/components/tool/youtube-earnings-estimator";
+import { YoutubeEndScreenTimingPlanner } from "@/components/tool/youtube-end-screen-timing-planner";
 import { YoutubeHashtagChecker } from "@/components/tool/youtube-hashtag-checker";
+import { YoutubeShortsFormatChecker } from "@/components/tool/youtube-shorts-format-checker";
 import { YoutubeTitleChecker } from "@/components/tool/youtube-title-checker";
 import { YoutubeTimestampGenerator } from "@/components/tool/youtube-timestamp-generator";
+import { YoutubeUploadLimitChecker } from "@/components/tool/youtube-upload-limit-checker";
 import { formatFileSize } from "@/lib/tools/thumbnail-checker/analyze";
 import {
   youtubeThumbnailAcceptedMimeTypes,
@@ -34,13 +37,36 @@ import {
   youtubeVideoRpmUsesViews,
 } from "@/lib/platform-facts/youtube-earnings";
 import {
+  youtubeEndScreenMadeForKidsUnavailable,
+  youtubeEndScreenMaxWindowSeconds,
+  youtubeEndScreenMinVideoDurationSeconds,
+  youtubeEndScreenMinWindowSeconds,
+  youtubeEndScreenOtherAspectRatiosMayHaveLowerLimit,
+  youtubeEndScreenStandardAspectMaxElements,
+  youtubeEndScreenUploadWorkflowMinimumDuration,
+} from "@/lib/platform-facts/youtube-end-screens";
+import {
   youtubeHashtagsDescriptionMayDisplayCount,
   youtubeHashtagsDisplayDeterminedByYoutube,
   youtubeHashtagsIgnoreAllAboveCount,
   youtubeHashtagsMustFollowPolicies,
   youtubeHashtagsNoSpaces,
 } from "@/lib/platform-facts/youtube-hashtags";
+import {
+  youtubeShortsAllowsSquareOrVertical,
+  youtubeShortsMaxDurationSeconds,
+  youtubeShortsOfficialArtistClassificationStartDate,
+  youtubeShortsOverOneMinuteContentIdClaimLimitation,
+  youtubeShortsStandardChannelClassificationStartDate,
+  youtubeShortsUploadRequiresSquareOrVertical,
+} from "@/lib/platform-facts/youtube-shorts";
 import { youtubeTitleMaxCharacters } from "@/lib/platform-facts/youtube-title";
+import {
+  youtubeUploadDefaultDurationSeconds,
+  youtubeUploadMaxDurationSeconds,
+  youtubeUploadMaxFileSizeBytes,
+  youtubeUploadSupportedFormatsAreSeparate,
+} from "@/lib/platform-facts/youtube-upload";
 import { siteConfig } from "@/lib/seo/site";
 import { getRelatedTools, getToolBySlug, tools } from "@/lib/tools/registry";
 
@@ -58,6 +84,9 @@ const WORKSPACE_HEADINGS: Record<string, string> = {
   "youtube-earnings-estimator": "Estimate an earnings scenario",
   "youtube-title-checker": "Check your title",
   "youtube-hashtag-checker": "Check your hashtags",
+  "youtube-shorts-format-checker": "Check your Shorts format",
+  "youtube-upload-limit-checker": "Check upload limits",
+  "youtube-end-screen-timing-planner": "Plan end screen timing",
 };
 
 // The registry's `summary` field also drives the meta description and catalog card,
@@ -76,6 +105,12 @@ const TOOL_INTRO_OVERRIDES: Record<string, string> = {
     "Check a YouTube video title against the official 100-character title limit, review informational counts, and copy the exact title when it is ready.",
   "youtube-hashtag-checker":
     "Extract hashtags from a title, description, or hashtag list, count duplicates, and check the result against YouTube's published 60-hashtag threshold.",
+  "youtube-shorts-format-checker":
+    "Choose a local video file and check its browser-reported metadata against YouTube's current Shorts duration and square-or-vertical format conditions.",
+  "youtube-upload-limit-checker":
+    "Choose a local video file and check its browser-readable size and duration against YouTube's currently published 256 GB and 12-hour upload limits.",
+  "youtube-end-screen-timing-planner":
+    "Enter a video duration and end-screen length to calculate the exact start and end timestamps for YouTube's published end-screen timing window.",
 };
 
 export function generateStaticParams() {
@@ -144,7 +179,10 @@ export default async function ToolPage({ params }: ToolPageProps) {
           tool.id === "youtube-chapter-generator" ||
           tool.id === "youtube-earnings-estimator" ||
           tool.id === "youtube-title-checker" ||
-          tool.id === "youtube-hashtag-checker"
+          tool.id === "youtube-hashtag-checker" ||
+          tool.id === "youtube-shorts-format-checker" ||
+          tool.id === "youtube-upload-limit-checker" ||
+          tool.id === "youtube-end-screen-timing-planner"
             ? "max-w-5xl"
             : "max-w-4xl"
         }`}
@@ -186,6 +224,21 @@ export default async function ToolPage({ params }: ToolPageProps) {
         {tool.id === "youtube-hashtag-checker" ? (
           <div className="mt-4">
             <YoutubeHashtagChecker toolId={tool.analyticsId} />
+          </div>
+        ) : null}
+        {tool.id === "youtube-shorts-format-checker" ? (
+          <div className="mt-4">
+            <YoutubeShortsFormatChecker toolId={tool.analyticsId} />
+          </div>
+        ) : null}
+        {tool.id === "youtube-upload-limit-checker" ? (
+          <div className="mt-4">
+            <YoutubeUploadLimitChecker toolId={tool.analyticsId} />
+          </div>
+        ) : null}
+        {tool.id === "youtube-end-screen-timing-planner" ? (
+          <div className="mt-4">
+            <YoutubeEndScreenTimingPlanner toolId={tool.analyticsId} />
           </div>
         ) : null}
       </section>
@@ -1231,6 +1284,489 @@ export default async function ToolPage({ params }: ToolPageProps) {
             <p className="mt-1 text-xs text-[var(--text-muted)]">
               Verified {youtubeHashtagsIgnoreAllAboveCount.verifiedAt}. YouTube can change these rules at any time.
             </p>
+          </div>
+        </section>
+      ) : null}
+
+      {tool.id === "youtube-shorts-format-checker" ? (
+        <section className="mt-14 max-w-3xl">
+          <h2 className="text-2xl font-semibold tracking-tight text-[var(--text)]">How to use</h2>
+          <ol className="mt-4 list-decimal space-y-2 pl-5 leading-7 text-[var(--text-muted)]">
+            <li>Choose a video file from your device.</li>
+            <li>Let your browser read the local width, height, duration, filename, and file size metadata.</li>
+            <li>If metadata cannot be read, enter width, height, and duration manually.</li>
+            <li>Review the aspect and duration checks before uploading to YouTube.</li>
+          </ol>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Current YouTube Shorts format rules
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            YouTube currently publishes a Shorts duration condition of up to{" "}
+            <span className="font-semibold text-[var(--text)]">
+              {youtubeShortsMaxDurationSeconds.value / 60} minutes
+            </span>{" "}
+            and a square-or-vertical aspect condition. This checker treats width less than height as vertical, width
+            equal to height as square, and width greater than height as horizontal. It does not invent or require a
+            9:16 ratio.
+          </p>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            {youtubeShortsAllowsSquareOrVertical.value && youtubeShortsUploadRequiresSquareOrVertical.value
+              ? "For current uploads, YouTube's Help pages say square or vertical videos up to three minutes are handled as Shorts under the published rules."
+              : ""}
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            What the results mean
+          </h2>
+          <ul className="mt-4 space-y-2 leading-7 text-[var(--text-muted)]">
+            <li>
+              <span className="font-semibold text-[var(--text)]">Neutral</span> - no file is selected, or manual
+              metadata is incomplete.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Ready</span> - duration is greater than zero and no
+              more than 180 seconds, and width is less than or equal to height.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Error</span> - the video is over 3 minutes,
+              horizontal, unreadable with no valid manual fallback, or has zero/negative dimensions or duration.
+            </li>
+          </ul>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Square vs vertical video
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            Square and vertical both pass the aspect check because YouTube publishes the condition as square or
+            vertical. A square 1080 x 1080 video passes the format check when it is no more than 3 minutes. A vertical
+            1080 x 1920 video also passes when it is no more than 3 minutes. A horizontal 1920 x 1080 video fails this
+            specific Shorts format check.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Videos longer than one minute and Content ID
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            {youtubeShortsOverOneMinuteContentIdClaimLimitation.value
+              ? "YouTube says Shorts over one minute with active copyright or Content ID claims can be blocked. This is neutral guidance here because CreatorToolWorks only reads local metadata and cannot know whether a selected file has an active claim."
+              : ""}
+          </p>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            YouTube also publishes a dated policy change for September 24, 2026, after which new Shorts longer than
+            one minute with an active Content ID claim are no longer described as automatically blocked. This page was
+            verified on September 18, 2026, so owner QA should re-check that source when reviewing after that date.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Methodology and limitations
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            This tool runs in your browser. It uses browser media metadata for width, height, duration, filename, and
+            optional file size. Nothing is uploaded to CreatorToolWorks or a server. The pass/fail logic is
+            deterministic: width less than or equal to height passes the aspect check, and duration greater than zero
+            and less than or equal to 180 seconds passes the duration check.
+          </p>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            Passing this checker does not guarantee upload, distribution, monetization, recommendation, copyright
+            clearance, or final classification by YouTube. It cannot determine Content ID claims, copyright status,
+            channel/account restrictions, Community Guidelines issues, monetization eligibility, music licensing, or
+            final YouTube processing/classification.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">FAQ</h2>
+          <div className="mt-4 space-y-5">
+            <div>
+              <p className="font-semibold text-[var(--text)]">Does this tool upload my video?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. Your video stays in your browser. CreatorToolWorks reads only local metadata needed for this
+                check, and the video is not uploaded.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Is 9:16 required for YouTube Shorts?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                This checker does not require 9:16 because the official format condition checked here is square or
+                vertical, not one required ratio.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Does exactly 3:00 pass?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                Yes. Exactly 180 seconds passes. Anything materially above 180 seconds fails.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Can this tell whether YouTube will finally classify it as a Short?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. It checks only local format metadata against published conditions. YouTube performs its own
+                processing and account, policy, rights, and classification checks.
+              </p>
+            </div>
+          </div>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">Official sources</h2>
+          <div className="mt-4 grid gap-3">
+            <div className="card p-4">
+              <p className="text-sm leading-6 text-[var(--text-muted)]">
+                Three-minute Shorts, square-or-vertical classification dates, and over-one-minute claimed-content
+                limitations.
+              </p>
+              <a
+                href={youtubeShortsMaxDurationSeconds.sourceUrl}
+                className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] underline underline-offset-2"
+                target="_blank"
+                rel="noreferrer"
+              >
+                support.google.com - Understand three-minute YouTube Shorts
+                <span aria-hidden="true">-&gt;</span>
+              </a>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">
+                Verified {youtubeShortsMaxDurationSeconds.verifiedAt}. Standard-channel date:{" "}
+                {youtubeShortsStandardChannelClassificationStartDate.value}. Official Artist Channel date:{" "}
+                {youtubeShortsOfficialArtistClassificationStartDate.value}.
+              </p>
+            </div>
+            <div className="card p-4">
+              <p className="text-sm leading-6 text-[var(--text-muted)]">
+                YouTube Studio upload guidance for selecting a video up to three minutes with a square or vertical
+                aspect ratio.
+              </p>
+              <a
+                href={youtubeShortsUploadRequiresSquareOrVertical.sourceUrl}
+                className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] underline underline-offset-2"
+                target="_blank"
+                rel="noreferrer"
+              >
+                support.google.com - Upload YouTube Shorts
+                <span aria-hidden="true">-&gt;</span>
+              </a>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">
+                Verified {youtubeShortsUploadRequiresSquareOrVertical.verifiedAt}. YouTube can change these rules at
+                any time.
+              </p>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {tool.id === "youtube-upload-limit-checker" ? (
+        <section className="mt-14 max-w-3xl">
+          <h2 className="text-2xl font-semibold tracking-tight text-[var(--text)]">How to use</h2>
+          <ol className="mt-4 list-decimal space-y-2 pl-5 leading-7 text-[var(--text-muted)]">
+            <li>Choose a video file from your device.</li>
+            <li>Let your browser read the local file name, file size, MIME type, and duration metadata.</li>
+            <li>If metadata cannot be read, enter file size and duration manually.</li>
+            <li>Review the size, duration, and account-verification information before uploading to YouTube.</li>
+          </ol>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Current YouTube upload limits
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            YouTube currently publishes a maximum upload size of{" "}
+            <span className="font-semibold text-[var(--text)]">
+              {(youtubeUploadMaxFileSizeBytes.value as number) / 1_000_000_000} GB
+            </span>{" "}
+            or{" "}
+            <span className="font-semibold text-[var(--text)]">
+              {(youtubeUploadMaxDurationSeconds.value as number) / 3600} hours
+            </span>
+            , whichever is less. This checker treats exactly 256 GB and exactly 12:00:00 as within the published
+            limits.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Videos longer than 15 minutes
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            YouTube says videos up to{" "}
+            <span className="font-semibold text-[var(--text)]">
+              {(youtubeUploadDefaultDurationSeconds.value as number) / 60} minutes
+            </span>{" "}
+            can be uploaded by default, and videos longer than 15 minutes require a verified account. CreatorToolWorks
+            cannot know whether your YouTube account is verified, so longer-than-15-minute results are shown as
+            informational guidance rather than a failure when the size and 12-hour duration checks pass.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Supported video formats
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            YouTube publishes supported video formats separately. This checker does not turn a filename extension or
+            browser MIME type into a definitive format pass/fail because those values do not reliably prove the actual
+            codec or container contents. Browser-reported type is displayed as informational only when available.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">What the results mean</h2>
+          <ul className="mt-4 space-y-2 leading-7 text-[var(--text-muted)]">
+            <li>
+              <span className="font-semibold text-[var(--text)]">Neutral</span> - no file is selected, or manual
+              fallback values are incomplete.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Ready</span> - file size is greater than zero and no
+              more than 256 GB, and duration is greater than zero and no more than 12 hours.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Info</span> - the duration is over 15 minutes or a
+              browser MIME type is available. Info messages do not make the file fail this limit check.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Error</span> - file size is over 256 GB, duration is
+              over 12 hours, or manual size/duration values are zero, negative, or not valid numbers.
+            </li>
+          </ul>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Methodology and limitations
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            This tool runs in your browser. It uses local file metadata for file name, file size, browser MIME type,
+            and duration when the browser can read that data. Nothing is uploaded to CreatorToolWorks or a server. The
+            pass/fail logic is deterministic: file size must be greater than zero and no more than 256 GB, and duration
+            must be greater than zero and no more than 12 hours.
+          </p>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            The size check uses decimal GB because YouTube publishes the limit as 256 GB, not an exact byte count:
+            1 GB = 1,000,000,000 bytes, so 256 GB = 256,000,000,000 bytes. Validation uses the raw number before any
+            friendly display rounding.
+          </p>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            Passing this checker does not guarantee upload acceptance, processing, publishing, monetization, copyright
+            clearance, account eligibility, daily upload capacity, Community Guidelines compliance, codec validity, or
+            final retention by YouTube. It also cannot check strikes, restrictions, Content ID issues, or whether your
+            account is verified.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">FAQ</h2>
+          <div className="mt-4 space-y-5">
+            <div>
+              <p className="font-semibold text-[var(--text)]">Does this tool upload my video?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. Your video stays in your browser. CreatorToolWorks reads local metadata needed for this check and
+                does not send the video to a server.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Does a Ready result mean YouTube will accept my video?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. Ready means only that the locally checkable size and duration values are within YouTube&apos;s
+                published size and duration limits.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Why is a 24-minute example still Ready?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                Videos longer than 15 minutes require account verification according to YouTube, but that is separate
+                from the 256 GB and 12-hour limit checks. This tool shows account verification as information because
+                it cannot know your account status.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Can this check supported video formats?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                It links to YouTube&apos;s supported-format list and may show a browser-reported MIME type, but it does
+                not claim definitive format or codec support from a filename or MIME string.
+              </p>
+            </div>
+          </div>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">Official sources</h2>
+          <div className="mt-4 grid gap-3">
+            <div className="card p-4">
+              <p className="text-sm leading-6 text-[var(--text-muted)]">
+                Upload length, maximum file size, and account verification for videos longer than 15 minutes.
+              </p>
+              <a
+                href={youtubeUploadMaxDurationSeconds.sourceUrl}
+                className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] underline underline-offset-2"
+                target="_blank"
+                rel="noreferrer"
+              >
+                support.google.com - Upload videos longer than 15 minutes
+                <span aria-hidden="true">-&gt;</span>
+              </a>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">
+                Verified {youtubeUploadMaxDurationSeconds.verifiedAt}. YouTube can change these limits at any time.
+              </p>
+            </div>
+            <div className="card p-4">
+              <p className="text-sm leading-6 text-[var(--text-muted)]">
+                YouTube&apos;s official supported video format list.
+              </p>
+              <a
+                href={youtubeUploadSupportedFormatsAreSeparate.sourceUrl}
+                className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] underline underline-offset-2"
+                target="_blank"
+                rel="noreferrer"
+              >
+                support.google.com - Supported YouTube file formats
+                <span aria-hidden="true">-&gt;</span>
+              </a>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">
+                Verified {youtubeUploadSupportedFormatsAreSeparate.verifiedAt}. Format guidance is informational in
+                this checker.
+              </p>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {tool.id === "youtube-end-screen-timing-planner" ? (
+        <section className="mt-14 max-w-3xl">
+          <h2 className="text-2xl font-semibold tracking-tight text-[var(--text)]">How to use</h2>
+          <ol className="mt-4 list-decimal space-y-2 pl-5 leading-7 text-[var(--text-muted)]">
+            <li>Enter the full video duration, such as <code>12:35</code> or <code>1:02:15</code>.</li>
+            <li>Enter the end screen length as a whole number from 5 through 20 seconds.</li>
+            <li>Use the calculated start timestamp as the point where your end screen window begins.</li>
+            <li>Copy the timing block if you want to save or share the plan.</li>
+          </ol>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Current YouTube end-screen timing rules
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            YouTube currently says end screens can be added to the last{" "}
+            <span className="font-semibold text-[var(--text)]">{youtubeEndScreenMinWindowSeconds.value}</span>-
+            <span className="font-semibold text-[var(--text)]">{youtubeEndScreenMaxWindowSeconds.value}</span>{" "}
+            seconds of a video. YouTube also says a video must be at least{" "}
+            <span className="font-semibold text-[var(--text)]">
+              {youtubeEndScreenMinVideoDurationSeconds.value} seconds
+            </span>{" "}
+            long to have an end screen.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            How the timing is calculated
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            The calculation is deterministic: end screen start equals video duration minus end screen length. The end
+            time is the full video duration. For a <code>12:35</code> video with a 15-second end screen, the planner
+            returns a start time of <code>12:20</code> and an end time of <code>12:35</code>.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">What the results mean</h2>
+          <ul className="mt-4 space-y-2 leading-7 text-[var(--text-muted)]">
+            <li>
+              <span className="font-semibold text-[var(--text)]">Neutral</span> - the duration is empty or the inputs
+              are incomplete.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Ready</span> - the duration is at least 25 seconds
+              and the end-screen length is within YouTube&apos;s published 5-20 second window.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">Error</span> - the duration cannot be parsed, is
+              zero or negative, is shorter than 25 seconds, or the end-screen length is outside 5-20 seconds.
+            </li>
+          </ul>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            End-screen element limits
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            YouTube says standard 16:9 videos can have up to{" "}
+            <span className="font-semibold text-[var(--text)]">
+              {youtubeEndScreenStandardAspectMaxElements.value}
+            </span>{" "}
+            end-screen elements.{" "}
+            {youtubeEndScreenOtherAspectRatiosMayHaveLowerLimit.value
+              ? "Other aspect ratios may support fewer elements."
+              : ""}
+            This planner keeps that as informational guidance, not a timing pass/fail rule.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Where end screens may not appear
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            Timing compliance does not guarantee that an end screen is available or displayed. YouTube documents
+            contexts where end screens are unavailable
+            {youtubeEndScreenMadeForKidsUnavailable.value ? ", including videos set as made for kids" : ""}, the
+            YouTube Music app, Flash videos, mobile web, and 360 videos. YouTube also says viewers can hide end
+            screens and that end screens may show differently by performance, viewer behavior, device, and context.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">
+            Methodology and limitations
+          </h2>
+          <p className="mt-4 leading-7 text-[var(--text-muted)]">
+            This planner runs entirely in your browser. It does not require an account, API, login, upload, or
+            server-side calculation. It only checks user-entered timing values against YouTube&apos;s published timing
+            window and minimum video duration. It cannot know made-for-kids status, account or channel restrictions,
+            video policy status, viewer or device context, whether a viewer hides the end screen, or final YouTube
+            rendering behavior.
+          </p>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">FAQ</h2>
+          <div className="mt-4 space-y-5">
+            <div>
+              <p className="font-semibold text-[var(--text)]">Does this find the best end-screen length?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. It is a timing planner only. It does not predict views, retention, click-through rate, or
+                performance.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Does exactly 25 seconds pass?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                Yes. A 25-second video can have a 5-second end screen starting at <code>0:20</code>, or a 20-second
+                end screen starting at <code>0:05</code>.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Does 25:00 mean 25 seconds?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. The shared timestamp parser treats <code>25:00</code> as 25 minutes. Enter <code>25</code> or{" "}
+                <code>0:25</code> for 25 seconds.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--text)]">Does this upload my video?</p>
+              <p className="mt-1 leading-7 text-[var(--text-muted)]">
+                No. This tool uses manual timing inputs only and sends no video, title, filename, account, or channel
+                data anywhere.
+              </p>
+            </div>
+          </div>
+
+          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[var(--text)]">Official sources</h2>
+          <div className="mt-4 grid gap-3">
+            <div className="card p-4">
+              <p className="text-sm leading-6 text-[var(--text-muted)]">
+                End-screen timing window, 25-second video minimum, element limits, and unavailable contexts.
+              </p>
+              <a
+                href={youtubeEndScreenMinWindowSeconds.sourceUrl}
+                className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] underline underline-offset-2"
+                target="_blank"
+                rel="noreferrer"
+              >
+                support.google.com - Add end screens to videos
+                <span aria-hidden="true">-&gt;</span>
+              </a>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">
+                Verified {youtubeEndScreenMinWindowSeconds.verifiedAt}. YouTube can change these rules at any time.
+              </p>
+            </div>
+            <div className="card p-4">
+              <p className="text-sm leading-6 text-[var(--text-muted)]">
+                YouTube Studio upload workflow note that a video must be 25 seconds or longer to add an end screen.
+              </p>
+              <a
+                href={youtubeEndScreenUploadWorkflowMinimumDuration.sourceUrl}
+                className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] underline underline-offset-2"
+                target="_blank"
+                rel="noreferrer"
+              >
+                support.google.com - Upload YouTube videos
+                <span aria-hidden="true">-&gt;</span>
+              </a>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">
+                Verified {youtubeEndScreenUploadWorkflowMinimumDuration.verifiedAt}.
+              </p>
+            </div>
           </div>
         </section>
       ) : null}
