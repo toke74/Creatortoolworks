@@ -99,3 +99,9 @@ Suggested review cadence:
 - Framework support: during dependency/framework upgrades.
 
 When a source changes a rule, update centralized platform facts, affected tests, copy, and this register in one pull request.
+
+### Re-verified on 2026-10-18 (YouTube Thumbnail & Title Previewer build)
+- https://support.google.com/youtube/answer/72431: custom thumbnails provide a snapshot and are used as preview images in embedded players. Standard video guidance still recommends 3840 × 2160, minimum width 640px, 16:9, formats such as JPG/PNG, 2MB video thumbnails on mobile and 50MB on desktop. Existing centralized numeric values are unchanged; verification dates refreshed. The live page also contains separate Shorts/podcast guidance; this previewer simulates standard video cards only.
+- https://support.google.com/youtube/answer/12340300: viewers usually see thumbnail/title before deciding to watch; thumbnails display differently across devices; viewers may see only part of the title. Context facts centralized in `src/lib/platform-facts/youtube-thumbnail-title.ts`. No performance statistics or outcomes are inferred.
+- https://support.google.com/youtube/answer/57407: video titles have a 100-character limit; the thumbnail is seen before choosing a video. Existing `youtube.title.maxCharacters` remains 100, with this verified source/date. Unicode code-point counting remains a local project convention, not an asserted official Unicode counting rule.
+- Five preview layouts, centered cover crops, theme colors, font sizes, and line clamps are CreatorToolWorks simulation choices, not official YouTube layout rules. Tools #1–#10 logic and release states are unchanged.

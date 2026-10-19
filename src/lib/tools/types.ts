@@ -2,6 +2,7 @@ export type ToolStatus = "draft" | "live" | "deprecated";
 
 export type ToolCategory =
   | "thumbnail"
+  | "thumbnails"
   | "titles"
   | "descriptions"
   | "timestamps"

@@ -1,9 +1,9 @@
 import type { PlatformFact } from "./types";
 
-// Source: https://support.google.com/youtube/answer/72431?hl=en (verified 2026-08-20).
+// Source: https://support.google.com/youtube/answer/72431?hl=en (re-verified 2026-10-18).
 // Do not hard-code older "1280x720 / 2 MB everywhere" assumptions; re-verify before changing these values.
 const YOUTUBE_THUMBNAIL_SOURCE_URL = "https://support.google.com/youtube/answer/72431?hl=en";
-const YOUTUBE_THUMBNAIL_VERIFIED_AT = "2026-08-20";
+const YOUTUBE_THUMBNAIL_VERIFIED_AT = "2026-10-18";
 
 function fact<T>(key: string, value: T, notes: string): PlatformFact<T> {
   return {

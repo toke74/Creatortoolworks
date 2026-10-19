@@ -186,6 +186,27 @@ export const tools: readonly ToolDefinition[] = [
       "youtube.endScreens.uploadWorkflowMinimumDuration",
     ],
   },
+  {
+    id: "youtube-thumbnail-title-previewer",
+    name: "YouTube Thumbnail & Title Previewer",
+    slug: "youtube-thumbnail-title-previewer",
+    category: "thumbnails",
+    status: "live",
+    implemented: true,
+    visibleInCatalog: true,
+    summary: "See your thumbnail and exact title together in five approximate desktop and mobile layouts. Preview locally in light or dark appearance.",
+    analyticsId: "youtube_thumbnail_title_previewer",
+    relatedToolIds: ["thumbnail-size-checker", "youtube-title-checker", "youtube-description-formatter"],
+    sourceFacts: [
+      "youtube.thumbnail.previewImage",
+      "youtube.thumbnailTitle.viewerDecision",
+      "youtube.thumbnailTitle.deviceVariation",
+      "youtube.thumbnailTitle.partialTitle",
+      "youtube.title.maxCharacters",
+      "youtube.thumbnail.recommendedWidthPx",
+      "youtube.thumbnail.recommendedAspectRatio",
+    ],
+  },
 ];
 
 export function getToolBySlug(slug: string): ToolDefinition | undefined {

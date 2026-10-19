@@ -12,6 +12,7 @@ interface ToolIconProps {
 function IconPaths({ category }: { category: ToolCategory }) {
   switch (category) {
     case "thumbnail":
+    case "thumbnails":
       return (
         <>
           <rect x="4" y="6" width="16" height="12" rx="2.5" />

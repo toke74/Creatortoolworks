@@ -18,8 +18,8 @@ function fixture(overrides: Partial<ToolDefinition>): ToolDefinition {
 }
 
 describe("tool registry", () => {
-  it("contains the six MVP tools plus the hashtag, Shorts format, upload limit, and end-screen timing tools", () => {
-    expect(tools).toHaveLength(10);
+  it("contains eleven implemented tools", () => {
+    expect(tools).toHaveLength(11);
   });
 
   it("uses unique ids and slugs", () => {
@@ -44,7 +44,14 @@ describe("tool registry", () => {
       "youtube-shorts-format-checker",
       "youtube-upload-limit-checker",
       "youtube-end-screen-timing-planner",
+      "youtube-thumbnail-title-previewer",
     ]);
+  });
+
+  it("keeps the thumbnail/title previewer live, implemented, and catalog-visible", () => {
+    expect(getToolBySlug("youtube-thumbnail-title-previewer")).toMatchObject({
+      status: "live", implemented: true, visibleInCatalog: true, category: "thumbnails",
+    });
   });
 
   it("has the end screen timing planner live, implemented, catalog-visible, and indexable", () => {

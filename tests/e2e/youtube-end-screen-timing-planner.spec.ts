@@ -8,7 +8,11 @@ async function fillTiming(page: Page, duration: string, length: string) {
 async function waitForHydrationBeforeScreenshot(page: Page) {
   await expect(page.getByRole("heading", { level: 1 })).toContainText("YouTube End Screen Timing Planner");
   await expect(page.getByLabel("Video duration")).toBeVisible();
-  await page.waitForTimeout(500);
+  // Confirm the client handlers are active, then restore the neutral capture state.
+  await page.getByRole("button", { name: /load example/i }).click();
+  await expectMetricValue(page, "End screen starts", "12:20");
+  await page.getByRole("button", { name: /^Clear$/ }).click();
+  await expect(page.getByText(/enter a video duration and end screen length/i)).toBeVisible();
 }
 
 async function expectMetricValue(page: Page, label: string, value: string) {
@@ -132,7 +136,11 @@ test.describe("YouTube End Screen Timing Planner", () => {
     expect(errors).toEqual([]);
   });
 
-  test("captures requested owner-review screenshots", async ({ page }) => {
+  test("captures requested owner-review screenshots", async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== "chromium",
+      "Owner-review screenshots are captured once at deterministic sizes in Chromium. Mobile behavior is covered by dedicated functional/responsive tests.",
+    );
     await page.goto("/youtube-tools/youtube-end-screen-timing-planner");
     await waitForHydrationBeforeScreenshot(page);
     await page.screenshot({ path: "screenshots/tool10-01-empty-state.png", fullPage: true });
@@ -156,6 +164,7 @@ test.describe("YouTube End Screen Timing Planner", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await waitForHydrationBeforeScreenshot(page);
     await fillTiming(page, "12:35", "15");
+    await expect(page.getByText("End screen timing ready")).toBeVisible();
     await page.screenshot({ path: "screenshots/tool10-06-390px-mobile.png", fullPage: true });
   });
 

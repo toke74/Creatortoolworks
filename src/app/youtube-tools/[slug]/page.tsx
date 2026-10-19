@@ -13,6 +13,8 @@ import { YoutubeShortsFormatChecker } from "@/components/tool/youtube-shorts-for
 import { YoutubeTitleChecker } from "@/components/tool/youtube-title-checker";
 import { YoutubeTimestampGenerator } from "@/components/tool/youtube-timestamp-generator";
 import { YoutubeUploadLimitChecker } from "@/components/tool/youtube-upload-limit-checker";
+import { YoutubeThumbnailTitlePreviewer } from "@/components/tool/youtube-thumbnail-title-previewer";
+import { ThumbnailTitlePreviewerGuide } from "@/components/tool/thumbnail-title-previewer-guide";
 import { formatFileSize } from "@/lib/tools/thumbnail-checker/analyze";
 import {
   youtubeThumbnailAcceptedMimeTypes,
@@ -87,6 +89,7 @@ const WORKSPACE_HEADINGS: Record<string, string> = {
   "youtube-shorts-format-checker": "Check your Shorts format",
   "youtube-upload-limit-checker": "Check upload limits",
   "youtube-end-screen-timing-planner": "Plan end screen timing",
+  "youtube-thumbnail-title-previewer": "Preview your thumbnail and title",
 };
 
 // The registry's `summary` field also drives the meta description and catalog card,
@@ -182,7 +185,8 @@ export default async function ToolPage({ params }: ToolPageProps) {
           tool.id === "youtube-hashtag-checker" ||
           tool.id === "youtube-shorts-format-checker" ||
           tool.id === "youtube-upload-limit-checker" ||
-          tool.id === "youtube-end-screen-timing-planner"
+          tool.id === "youtube-end-screen-timing-planner" ||
+          tool.id === "youtube-thumbnail-title-previewer"
             ? "max-w-5xl"
             : "max-w-4xl"
         }`}
@@ -241,7 +245,10 @@ export default async function ToolPage({ params }: ToolPageProps) {
             <YoutubeEndScreenTimingPlanner toolId={tool.analyticsId} />
           </div>
         ) : null}
+        {tool.id === "youtube-thumbnail-title-previewer" ? <YoutubeThumbnailTitlePreviewer /> : null}
       </section>
+
+      {tool.id === "youtube-thumbnail-title-previewer" ? <ThumbnailTitlePreviewerGuide /> : null}
 
       {tool.id === "thumbnail-size-checker" ? (
         <section className="mt-14 max-w-3xl">

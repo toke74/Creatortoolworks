@@ -6,6 +6,7 @@ import { youtubeEndScreenFacts } from "./youtube-end-screens";
 import { youtubeHashtagFacts } from "./youtube-hashtags";
 import { youtubeShortsFacts } from "./youtube-shorts";
 import { youtubeThumbnailFacts } from "./youtube-thumbnail";
+import { youtubeThumbnailTitleFacts } from "./youtube-thumbnail-title";
 import { youtubeTitleFacts } from "./youtube-title";
 import { youtubeUploadFacts } from "./youtube-upload";
 
@@ -13,6 +14,7 @@ import { youtubeUploadFacts } from "./youtube-upload";
 // Tool code should reference centralized facts instead of scattering magic numbers across components.
 export const platformFacts: readonly PlatformFact<unknown>[] = [
   ...youtubeThumbnailFacts,
+  ...youtubeThumbnailTitleFacts,
   ...youtubeChaptersFacts,
   ...youtubeDescriptionFacts,
   ...youtubeEarningsFacts,
